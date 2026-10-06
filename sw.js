@@ -1,6 +1,6 @@
 // Офлайн-робота: файли додатка зберігаються в кеші.
 // Коли викладаєш нову версію файлів, збільш номер нижче.
-const VERSION = 'planer-v4';
+const VERSION = 'planer-v5';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

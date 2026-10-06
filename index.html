@@ -24,7 +24,7 @@
   --accent:#C2603D; --accent-ink:#FFFFFF; --accent-soft:#F6E2D8;
   --done:#5E8A52; --miss:#C8454E; --moved:#B47A1A; --skip:#9A8B7E;
   --p-high:#D9473F; --p-mid:#E0A21E; --p-low:#C9BBAE;
-  --c-doctor:#3D8A9A; --c-jesya:#C25588; --c-shop:#C98A2B; --c-hobby:#5E8A52; --c-home:#8A6BB0; --c-work:#4F72B8; --c-other:#8C8478;
+  --c-doctor:#3D8A9A; --c-jesya:#C25588; --c-shop:#C98A2B; --c-hobby:#5E8A52; --c-home:#8A6BB0; --c-work:#4F72B8; --c-other:#8C8478; --c-health:#3E9B78; --c-growth:#C0703A;
   --shadow:0 2px 10px rgba(80,50,30,.07);
   --tabbar-h:64px;
   --font:"Nunito",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
@@ -341,6 +341,7 @@ details.fold[open] summary::before{content:"▾ "}
     if (!t.date) return false;
     if (!isRepeating(t)) return t.date === dk;
     if (dk < t.date) return false;
+    if (t.repeat.until && dk > t.repeat.until) return false;
     const r = t.repeat, d = parse(dk), s = parse(t.date);
     switch (r.type) {
       case "daily":
@@ -363,6 +364,10 @@ details.fold[open] summary::before{content:"▾ "}
   }
   function repeatLabel(t) {
     if (!isRepeating(t)) return "";
+    if (t.repeat.until) return repeatLabel0(t) + " до " + fmt(t.repeat.until);
+    return repeatLabel0(t);
+  }
+  function repeatLabel0(t) {
     const r = t.repeat, s = parse(t.date);
     switch (r.type) {
       case "daily":
@@ -538,8 +543,6 @@ details.fold[open] summary::before{content:"▾ "}
       throw new Error("\u0426\u0435 \u043D\u0435 \u0444\u0430\u0439\u043B \u0440\u0435\u0437\u0435\u0440\u0432\u043D\u043E\u0457 \u043A\u043E\u043F\u0456\u0457 \u043F\u043B\u0430\u043D\u0435\u0440\u0430");
     await run(["tasks", "history"], (tx) => {
       const a = tx.objectStore("tasks"), b = tx.objectStore("history");
-      a.clear();
-      b.clear();
       obj.tasks.forEach((x) => x && x.id && a.put(x));
       obj.history.forEach((x) => x && x.id && b.put(x));
     });
@@ -555,8 +558,17 @@ details.fold[open] summary::before{content:"▾ "}
     hobby: { n: "\u0425\u043E\u0431\u0456", e: "\u{1F3A8}" },
     home: { n: "\u0414\u0456\u043C", e: "\u{1F3E0}" },
     work: { n: "\u0420\u043E\u0431\u043E\u0442\u0430", e: "\u{1F4BC}" },
+    health: { n: "Здоровʼя", e: "🌿" },
+    growth: { n: "Розвиток", e: "📚" },
     other: { n: "\u0406\u043D\u0448\u0435", e: "\u{1F4CC}" }
   };
+  var PARTS = { morning: { n: "Ранок", e: "🌅" }, day: { n: "День", e: "☀️" }, evening: { n: "Вечір", e: "🌙" } };
+  var PART_O = { morning: 0, day: 1, evening: 2 };
+  function partOf(t) {
+    if (PARTS[t.part]) return t.part;
+    if (t.time) return t.time < "12:00" ? "morning" : t.time < "18:00" ? "day" : "evening";
+    return "day";
+  }
   var KINDS = {
     meeting: { n: "Зустріч", e: "🤝", c: "var(--c-work)" },
     bday: { n: "День народження", e: "🎂", c: "var(--p-mid)" },
@@ -577,7 +589,7 @@ details.fold[open] summary::before{content:"▾ "}
       if (occurs(t, dk) || h && h.status === "moved") out.push({ t, dk, h, st: h ? h.status : "open" });
     }
     const rank = { open: 0, missed: 0, done: 1, skipped: 2, moved: 3 };
-    return out.sort((a, b) => rank[a.st] - rank[b.st] || (PRIO[a.t.priority]?.o ?? 1) - (PRIO[b.t.priority]?.o ?? 1) || (a.t.time || "99").localeCompare(b.t.time || "99") || a.t.title.localeCompare(b.t.title, "uk"));
+    return out.sort((a, b) => PART_O[partOf(a.t)] - PART_O[partOf(b.t)] || rank[a.st] - rank[b.st] || (a.t.time || "99").localeCompare(b.t.time || "99") || (PRIO[a.t.priority]?.o ?? 1) - (PRIO[b.t.priority]?.o ?? 1) || (a.t.time || "99").localeCompare(b.t.time || "99") || a.t.title.localeCompare(b.t.title, "uk"));
   }
   function overdue() {
     const t0 = today(), from = addDays(t0, -60);
@@ -634,6 +646,7 @@ details.fold[open] summary::before{content:"▾ "}
   function signals() {
     const t0 = today(), out = [];
     for (const t of habits()) {
+      if (t.series) continue;
       const name = "\xAB" + esc(t.title) + "\xBB", cc = "var(--c-" + (CATS[t.category] ? t.category : "other") + ")";
       const g = gapOf(t), sk = streak(t);
       if (g >= 3) {
@@ -692,7 +705,35 @@ details.fold[open] summary::before{content:"▾ "}
       const h = p.a ? Math.round(p.d / p.a * 100) : 0, hm = p.a ? Math.round(p.m / p.a * 100) : 0;
       return `<div class="dc"><div class="col"><i class="no" style="height:${hm}%"></i><i style="height:${h}%"></i></div><small class="${p.k === t0 ? "today" : ""}">${WD[i]}</small><em>${p.a ? p.d + "/" + p.a : "\xB7"}</em></div>`;
     }).join("");
-    const hb = habits().filter((t) => Array.from({ length: 7 }, (_, i) => addDays(mon, i)).some((k) => occurs(t, k))).map((t) => {
+    const seriesSeen = new Set();
+    const hbSeries = [];
+    habits().forEach((t) => {
+      if (!t.series || seriesSeen.has(t.series)) return;
+      seriesSeen.add(t.series);
+      const grp = habits().filter((x) => x.series === t.series);
+      if (!Array.from({ length: 7 }, (_, i) => addDays(mon, i)).some((k) => grp.some((x) => occurs(x, k)))) return;
+      let occ = 0, ok = 0;
+      const cells = WD.map((l, i) => {
+        const k = addDays(mon, i);
+        const on = grp.filter((x) => occurs(x, k));
+        if (!on.length) return '<span class="off"></span>';
+        const sts = on.map((x) => {
+          const h = hist(x.id, k);
+          return h ? h.status : "open";
+        });
+        const d = sts.filter((x) => x === "done").length, mi = sts.filter((x) => x === "missed").length;
+        if (k <= t0) {
+          occ += on.length;
+          ok += d;
+        }
+        return `<span class="${d === on.length ? "ok" : mi ? "no" : ""}">${k <= t0 || d ? d + "/" + on.length : l}</span>`;
+      }).join("");
+      const start = grp.map((x) => x.date).sort()[0], ago = diff(start, t0);
+      const cur = grp.filter((x) => occurs(x, t0 >= mon && t0 <= addDays(mon, 6) ? t0 : mon));
+      const times = cur.map((x) => x.time).filter(Boolean).sort();
+      hbSeries.push(`<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span><span class="n">${ok}/${occ}</span></div><div class="since">${ago < 0 ? "Стартує " + fmt(start) : "Запущено " + fmt(start) + (ago > 0 ? ", " + ago + " " + daysWord(ago) + " тому" : ", сьогодні")}${cur.length ? " · зараз " + cur.length + " " + timesWord(cur.length) + " на день: " + times.join(", ") : ""}</div><div class="cells">${cells}</div></button>`);
+    });
+    const hb = hbSeries.join("") + habits().filter((t) => !t.series).filter((t) => Array.from({ length: 7 }, (_, i) => addDays(mon, i)).some((k) => occurs(t, k))).map((t) => {
       let occ = 0, ok = 0;
       const cells = WD.map((l, i) => {
         const k = addDays(mon, i);
@@ -709,7 +750,7 @@ details.fold[open] summary::before{content:"▾ "}
       const left = t.goal ? Math.max(0, t.goal - sk) : 0;
       const chal = t.goal ? `<div class="chal">${sk >= t.goal ? "🏆 Челендж на " + t.goal + " пройдено!" : `Челендж: ${sk} з ${t.goal}, лишилось ${left}`}<div class="track"><i style="width:${Math.min(100, sk / t.goal * 100)}%"></i></div></div>` : "";
       const ago = diff(t.date, t0), total = historyOf(t.id).filter((h) => h.status === "done").length;
-      const since = `<div class="since">Запущено ${fmt(t.date)}${t.date.slice(0, 4) !== t0.slice(0, 4) ? " " + t.date.slice(0, 4) : ""}${ago > 0 ? ", " + ago + " " + daysWord(ago) + " тому" : ", сьогодні"} · ${repeatLabel(t)} · усього виконано ${total} ${timesWord(total)}</div>`;
+      const since = `<div class="since">${ago < 0 ? "Стартує" : "Запущено"} ${fmt(t.date)}${t.date.slice(0, 4) !== t0.slice(0, 4) ? " " + t.date.slice(0, 4) : ""}${ago > 0 ? ", " + ago + " " + daysWord(ago) + " тому" : ago === 0 ? ", сьогодні" : ""} · ${repeatLabel(t)}${t.part ? ", " + PARTS[t.part].n.toLowerCase() : ""} · усього виконано ${total} ${timesWord(total)}</div>`;
       return `<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span>${badge}<span class="n">${ok}/${occ}</span></div>${since}<div class="cells">${cells}</div>${chal}</button>`;
     }).join("");
     const closed = closedIn(mon);
@@ -1031,6 +1072,9 @@ details.fold[open] summary::before{content:"▾ "}
     <div class="fld" id="w-week" ${when === "week" ? "" : "hidden"}><span>\u0422\u0438\u0436\u0434\u0435\u043D\u044C</span><div class="seg" id="f-week">
       ${weekOpts.map((w) => `<button type="button" data-v="${w}" class="${w === week ? "on" : ""}">${w === thisW ? "\u0426\u0435\u0439" : w === nextW ? "\u041D\u0430\u0441\u0442\u0443\u043F\u043D\u0438\u0439" : ""} ${fmtWeek(w)}</button>`).join("")}
     </div></div>
+    <div class="fld" id="w-part" ${when === "day" ? "" : "hidden"}><span>Частина дня</span><div class="seg full" id="f-part">
+      ${Object.entries(PARTS).map(([k, p]) => `<button type="button" data-v="${k}" class="${partOf(f) === k ? "on" : ""}">${p.e} ${p.n}</button>`).join("")}
+    </div></div>
     <div class="fld"><span>\u041F\u0440\u0456\u043E\u0440\u0438\u0442\u0435\u0442</span><div class="seg" id="f-prio">
       ${Object.entries(PRIO).map(([k, p]) => `<button type="button" data-v="${k}" class="${f.priority === k ? "on" : ""}">${p.e} ${p.n}</button>`).join("")}
     </div></div>
@@ -1050,9 +1094,19 @@ details.fold[open] summary::before{content:"▾ "}
         when = v;
         q("#w-day").hidden = v !== "day";
         q("#w-week").hidden = v !== "week";
+        q("#w-part").hidden = v !== "day";
       });
       segHandler(q("#f-week"), (v) => {
         week = v;
+      });
+      segHandler(q("#f-part"), (v) => {
+        f.part = v;
+      });
+      q("#f-time").addEventListener("change", (e) => {
+        const v = e.target.value;
+        if (!v) return;
+        f.part = v < "12:00" ? "morning" : v < "18:00" ? "day" : "evening";
+        q("#f-part").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === f.part));
       });
       segHandler(q("#f-prio"), (v) => {
         f.priority = v;
@@ -1094,7 +1148,9 @@ details.fold[open] summary::before{content:"▾ "}
           f.time = q("#f-time").value;
           f.weekOf = null;
           const type = q("#f-rep").value;
+          const prevUntil = f.repeat.until;
           f.repeat = { type };
+          if (prevUntil && type !== "none") f.repeat.until = prevUntil;
           if (type === "days") {
             if (!days.length) {
               toast("\u041E\u0431\u0435\u0440\u0438 \u0445\u043E\u0447\u0430 \u0431 \u043E\u0434\u0438\u043D \u0434\u0435\u043D\u044C \u0442\u0438\u0436\u043D\u044F");
@@ -1224,10 +1280,11 @@ details.fold[open] summary::before{content:"▾ "}
     const total = main2.length;
     const late = overdue();
     const weekPlans = [...data.tasks.values()].filter((t) => t.weekOf === mondayOf(dk) && !t.date && !t.done).length;
-    const groups = ["high", "mid", "low"].map((p) => {
-      const list = main2.filter((e) => (e.t.priority || "mid") === p);
+    const groups = ["morning", "day", "evening"].map((p) => {
+      const list = main2.filter((e) => partOf(e.t) === p);
       if (!list.length) return "";
-      return `<div class="sec">${PRIO[p].e} ${PRIO[p].n} \u043F\u0440\u0456\u043E\u0440\u0438\u0442\u0435\u0442</div>
+      const dn = list.filter((e) => e.st === "done").length;
+      return `<div class="sec">${PARTS[p].e} ${PARTS[p].n} <span class="cnt">${dn}/${list.length}</span></div>
       <div class="list">${list.map((e) => rowHTML(e)).join("")}</div>`;
     }).join("");
     const sig = signals().slice(0, 3);
@@ -1654,12 +1711,11 @@ details.fold[open] summary::before{content:"▾ "}
     try {
       const obj = JSON.parse(await f.text());
       if (!obj || obj.app !== "planer" || !Array.isArray(obj.tasks)) throw new Error();
-      const ok = confirm(`\u0417\u0430\u043C\u0456\u043D\u0438\u0442\u0438 \u0432\u0441\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u0456 \u0434\u0430\u043D\u0456 (${data.tasks.size} \u0441\u043F\u0440\u0430\u0432) \u0434\u0430\u043D\u0438\u043C\u0438 \u0437 \u0444\u0430\u0439\u043B\u0443 (${obj.tasks.length} \u0441\u043F\u0440\u0430\u0432)?
-
-\u041F\u043E\u0442\u043E\u0447\u043D\u0456 \u0434\u0430\u043D\u0456 \u0431\u0443\u0434\u0435 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E. \u042F\u043A\u0449\u043E \u0432\u043E\u043D\u0438 \u043F\u043E\u0442\u0440\u0456\u0431\u043D\u0456, \u0441\u043F\u0435\u0440\u0448\u0443 \u0437\u0440\u043E\u0431\u0438 \u0435\u043A\u0441\u043F\u043E\u0440\u0442.`);
+      if (!Array.isArray(obj.history)) obj.history = [];
+      const ok = confirm(`Додати у планер справи з файлу (${obj.tasks.length})?\n\nТе, що вже є в планері, залишиться. Справи з тими самими назвами з цього ж файлу просто оновляться.`);
       if (!ok) return;
       await importData(obj);
-      toast("\u0414\u0430\u043D\u0456 \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043E");
+      toast("Готово, справи додано");
     } catch (err) {
       toast("\u0426\u0435\u0439 \u0444\u0430\u0439\u043B \u043D\u0435 \u0441\u0445\u043E\u0436\u0438\u0439 \u043D\u0430 \u0440\u0435\u0437\u0435\u0440\u0432\u043D\u0443 \u043A\u043E\u043F\u0456\u044E \u043F\u043B\u0430\u043D\u0435\u0440\u0430");
     }
