@@ -160,7 +160,7 @@ button{cursor:pointer;background:none;border:none;padding:0}
 .cal-d.sel{background:var(--accent)} .cal-d.sel .n{color:var(--accent-ink)}
 .cal-d .dots{display:flex;gap:3px;height:6px}
 .cal-d .dots i{width:6px;height:6px;border-radius:50%;display:block}
-.dots .o{background:#3B82F6} .dots .ok{background:var(--done)} .dots .no{background:var(--miss)}
+.dots .bd,.legend .lg-bd{background:var(--p-mid)} .dots .ev,.legend .lg-ev{background:var(--accent)} .dots .tk,.legend .lg-tk{background:var(--muted)}
 .cal-d.sel .dots i{box-shadow:0 0 0 1.5px var(--accent-ink)}
 .legend{display:flex;gap:14px;justify-content:center;font-size:12px;color:var(--muted);margin:10px 0 0;font-weight:600}
 .legend span{display:flex;align-items:center;gap:5px}
@@ -257,6 +257,11 @@ details.fold[open] summary::before{content:"▾ "}
 .chal .track i{display:block;height:100%;border-radius:8px;background:var(--cc)}
 .badge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--surface);color:var(--accent);white-space:nowrap}
 .badge.warn{color:var(--miss)}
+
+.since{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:3px}
+.row.up{padding-left:14px}
+.row .cd{font-family:var(--font-round);font-weight:700;font-size:20px;color:var(--cc);flex:none;min-width:52px;text-align:right;line-height:1;padding-right:6px}
+.row .cd small{display:block;font-family:var(--font);font-size:11px;color:var(--muted);font-weight:700;margin-top:3px}
 
 /* ---------- Вибір кольорів ---------- */
 .pals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -552,6 +557,13 @@ details.fold[open] summary::before{content:"▾ "}
     work: { n: "\u0420\u043E\u0431\u043E\u0442\u0430", e: "\u{1F4BC}" },
     other: { n: "\u0406\u043D\u0448\u0435", e: "\u{1F4CC}" }
   };
+  var KINDS = {
+    meeting: { n: "Зустріч", e: "🤝", c: "var(--c-work)" },
+    bday: { n: "День народження", e: "🎂", c: "var(--p-mid)" },
+    concert: { n: "Концерт", e: "🎵", c: "var(--c-jesya)" },
+    trip: { n: "Поїздка", e: "✈️", c: "var(--c-doctor)" },
+    event: { n: "Подія", e: "✨", c: "var(--accent)" }
+  };
   var PRIO = {
     high: { n: "\u0412\u0438\u0441\u043E\u043A\u0438\u0439", e: "\u{1F534}", o: 0 },
     mid: { n: "\u0421\u0435\u0440\u0435\u0434\u043D\u0456\u0439", e: "\u{1F7E1}", o: 1 },
@@ -569,7 +581,7 @@ details.fold[open] summary::before{content:"▾ "}
   }
   function overdue() {
     const t0 = today(), from = addDays(t0, -60);
-    return [...data.tasks.values()].filter((t) => t.date && !isRepeating(t) && t.date < t0 && t.date >= from).map((t) => ({ t, dk: t.date, h: hist(t.id, t.date) })).filter((e) => !e.h || e.h.status === "missed").map((e) => ({ ...e, st: e.h ? e.h.status : "open" })).sort((a, b) => a.dk.localeCompare(b.dk));
+    return [...data.tasks.values()].filter((t) => t.date && !t.kind && !isRepeating(t) && t.date < t0 && t.date >= from).map((t) => ({ t, dk: t.date, h: hist(t.id, t.date) })).filter((e) => !e.h || e.h.status === "missed").map((e) => ({ ...e, st: e.h ? e.h.status : "open" })).sort((a, b) => a.dk.localeCompare(b.dk));
   }
   // ---- статистика, серії, челенджі ----
   function occBack(t, n) {
@@ -618,7 +630,7 @@ details.fold[open] summary::before{content:"▾ "}
     return "\u0440\u0430\u0437\u0456\u0432";
   }
   var unitWord = (t, n) => t.repeat.type === "daily" ? daysWord(n) : timesWord(n);
-  var habits = () => [...data.tasks.values()].filter((t) => isRepeating(t) && !t.origin);
+  var habits = () => [...data.tasks.values()].filter((t) => isRepeating(t) && !t.origin && !t.kind);
   function signals() {
     const t0 = today(), out = [];
     for (const t of habits()) {
@@ -646,7 +658,7 @@ details.fold[open] summary::before{content:"▾ "}
     let done = 0, all = 0;
     for (let i = 0; i < 7; i++) {
       const k = addDays(mon, i);
-      const es = k <= t0 ? entriesOn(k).filter((e) => e.st !== "moved" && e.st !== "skipped") : [];
+      const es = k <= t0 ? entriesOn(k).filter((e) => !e.t.kind && e.st !== "moved" && e.st !== "skipped") : [];
       const d = es.filter((e) => e.st === "done").length, m = es.filter((e) => e.st === "missed").length;
       per.push({ k, d, m, a: es.length });
       done += d;
@@ -676,7 +688,6 @@ details.fold[open] summary::before{content:"▾ "}
     const w = weekNums(mon), pw = weekNums(addDays(mon, -7));
     const delta = w.all && pw.all ? w.pct - pw.pct : null;
     const best = w.per.filter((p) => p.a && p.d).sort((a, b) => b.d / b.a - a.d / a.a || b.d - a.d)[0];
-    const sig = isThis ? signals() : [];
     const chart = w.per.map((p, i) => {
       const h = p.a ? Math.round(p.d / p.a * 100) : 0, hm = p.a ? Math.round(p.m / p.a * 100) : 0;
       return `<div class="dc"><div class="col"><i class="no" style="height:${hm}%"></i><i style="height:${h}%"></i></div><small class="${p.k === t0 ? "today" : ""}">${WD[i]}</small><em>${p.a ? p.d + "/" + p.a : "\xB7"}</em></div>`;
@@ -695,19 +706,22 @@ details.fold[open] summary::before{content:"▾ "}
       }).join("");
       const sk = streak(t), g = gapOf(t);
       const badge = g >= 3 ? `<span class="badge warn">${g} ${unitWord(t, g)} \u043F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043E</span>` : sk >= 2 ? `<span class="badge">\u{1F525} ${sk} \u043F\u043E\u0441\u043F\u0456\u043B\u044C</span>` : "";
-      const chal = t.goal ? `<div class="chal">${sk >= t.goal ? "\u{1F3C6} \u0427\u0435\u043B\u0435\u043D\u0434\u0436 \u043F\u0440\u043E\u0439\u0434\u0435\u043D\u043E!" : `\u0427\u0435\u043B\u0435\u043D\u0434\u0436: ${Math.min(sk, t.goal)} \u0437 ${t.goal}`}<div class="track"><i style="width:${Math.min(100, sk / t.goal * 100)}%"></i></div></div>` : "";
-      return `<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span>${badge}<span class="n">${ok}/${occ}</span></div><div class="cells">${cells}</div>${chal}</button>`;
+      const left = t.goal ? Math.max(0, t.goal - sk) : 0;
+      const chal = t.goal ? `<div class="chal">${sk >= t.goal ? "🏆 Челендж на " + t.goal + " пройдено!" : `Челендж: ${sk} з ${t.goal}, лишилось ${left}`}<div class="track"><i style="width:${Math.min(100, sk / t.goal * 100)}%"></i></div></div>` : "";
+      const ago = diff(t.date, t0), total = historyOf(t.id).filter((h) => h.status === "done").length;
+      const since = `<div class="since">Запущено ${fmt(t.date)}${t.date.slice(0, 4) !== t0.slice(0, 4) ? " " + t.date.slice(0, 4) : ""}${ago > 0 ? ", " + ago + " " + daysWord(ago) + " тому" : ", сьогодні"} · ${repeatLabel(t)} · усього виконано ${total} ${timesWord(total)}</div>`;
+      return `<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span>${badge}<span class="n">${ok}/${occ}</span></div>${since}<div class="cells">${cells}</div>${chal}</button>`;
     }).join("");
     const closed = closedIn(mon);
     return `
-    ${sig.length ? `<div class="signals">${sig.map(signalHTML).join("")}</div>` : ""}
-    <div class="sec">\u041F\u0456\u0434\u0441\u0443\u043C\u043E\u043A \u0442\u0438\u0436\u043D\u044F</div>
+    <div class="sec">Статистика тижня</div>
     <section class="card" style="margin-top:0">
       <div class="kpi"><b>${w.pct}%</b><span>\u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E ${w.done} \u0437 ${w.all}</span>${delta !== null ? `<span class="delta ${delta >= 0 ? "up" : "down"}">${delta >= 0 ? "+" : ""}${delta}% \u0434\u043E \u043C\u0438\u043D\u0443\u043B\u043E\u0433\u043E</span>` : ""}</div>
       <div class="days-chart">${chart}</div>
       ${best ? `<p class="best">\u041D\u0430\u0439\u043A\u0440\u0430\u0449\u0438\u0439 \u0434\u0435\u043D\u044C: ${WDFULL[wd(parse(best.k))]}, ${best.d} \u0437 ${best.a}</p>` : ""}
     </section>
-    ${hb ? `<div class="sec">\u0417\u0432\u0438\u0447\u043A\u0438 \u0439 \u0447\u0435\u043B\u0435\u043D\u0434\u0436\u0456</div><div class="list">${hb}</div>` : ""}
+    <div class="sec">Що я запустила</div>
+    ${hb ? `<div class="list">${hb}</div>` : `<div class="empty">Тут зʼявляться звички й челенджі. Створи повторювану справу через +.</div>`}
     ${closed.length ? `<div class="sec">\u0417\u0430\u043A\u0440\u0438\u0442\u043E \u0437\u0430 \u0442\u0438\u0436\u0434\u0435\u043D\u044C <span class="cnt">${closed.length}</span></div>
       <div class="list">${closed.map(({ t, c }) => `<div class="row done" data-id="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><span class="pdot ${t.priority || "mid"}"></span><button class="body" data-a="open"><span class="t">${esc(t.title)}</span><span class="m"><span class="s-closed">\u2713 \u0437\u0430\u043A\u0440\u0438\u0442\u043E ${fmt(c)}</span>${t.category && t.category !== "other" ? `<span class="cat">${CATS[t.category].e} ${CATS[t.category].n}</span>` : ""}</span></button></div>`).join("")}</div>` : ""}`;
   }
@@ -717,7 +731,13 @@ details.fold[open] summary::before{content:"▾ "}
     const meta = [];
     if (opt.showDate) meta.push(fmtShort(dk));
     if (t.time) meta.push(esc(t.time));
-    if (isRepeating(t)) meta.push("\u21BB " + repeatLabel(t));
+    const ev = KINDS[t.kind];
+    if (ev && t.kind === "bday") {
+      const age = t.birthYear ? parse(dk).getFullYear() - t.birthYear : 0;
+      meta.push('<span class="cat">День народження</span>' + (age > 0 ? " · " + age + " " + yearsWord(age) : ""));
+    } else if (ev) meta.push('<span class="cat">' + ev.n + "</span>");
+    if (t.place) meta.push("📍 " + esc(t.place));
+    if (isRepeating(t) && !ev) meta.push("\u21BB " + repeatLabel(t));
     if (isRepeating(t)) {
       const sk = streak(t);
       if (sk >= 2) meta.push('<span class="s-fire">\u{1F525} ' + sk + " \u043F\u043E\u0441\u043F\u0456\u043B\u044C</span>");
@@ -734,9 +754,9 @@ details.fold[open] summary::before{content:"▾ "}
     <button class="act done ${st === "done" ? "on" : ""}" data-a="done" aria-label="\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E">\u2713</button>
     <button class="act miss ${st === "missed" ? "on" : ""}" data-a="missed" aria-label="\u041D\u0435 \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E">\u2715</button>
     ${st === "done" ? "" : '<button class="act move" data-a="move" aria-label="\u041F\u0435\u0440\u0435\u043D\u0435\u0441\u0442\u0438">\u21AA</button>'}`;
-    return `<div class="row ${st}" data-id="${t.id}" data-d="${dk}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})">
+    return `<div class="row ${st}" data-id="${t.id}" data-d="${dk}" style="--cc:${KINDS[t.kind] ? KINDS[t.kind].c : "var(--c-" + (CATS[t.category] ? t.category : "other") + ")"}">
     <span class="pdot ${t.priority || "mid"}" aria-label="\u041F\u0440\u0456\u043E\u0440\u0438\u0442\u0435\u0442: ${PRIO[t.priority || "mid"].n}"></span>
-    <button class="body" data-a="open"><span class="t">${esc(t.title)}</span>${meta.length ? `<span class="m">${meta.map((m) => `<span>${m}</span>`).join("")}</span>` : ""}</button>
+    <button class="body" data-a="open"><span class="t">${KINDS[t.kind] ? KINDS[t.kind].e + " " : ""}${esc(t.title)}</span>${meta.length ? `<span class="m">${meta.map((m) => `<span>${m}</span>`).join("")}</span>` : ""}</button>
     <div class="acts">${acts}</div></div>`;
   }
   function planRowHTML(t, action = { a: "schedule", label: "\u0417\u0430\u043F\u043B\u0430\u043D\u0443\u0432\u0430\u0442\u0438" }) {
@@ -799,16 +819,146 @@ details.fold[open] summary::before{content:"▾ "}
       cb(b.dataset.v, b);
     });
   }
+  function yearsWord(n) {
+    const a = n % 100, b = a % 10;
+    if (a > 10 && a < 20) return "років";
+    if (b === 1) return "рік";
+    if (b >= 2 && b <= 4) return "роки";
+    return "років";
+  }
+  var isPoint = (t) => !!t.date && (!isRepeating(t) || t.kind === "bday");
+  function upcomingEvents(fromK, days) {
+    const out = [];
+    for (let i = 0; i <= days; i++) {
+      const k = addDays(fromK, i);
+      for (const t of data.tasks.values()) if (t.kind && occurs(t, k)) out.push({ t, k, n: i });
+    }
+    return out.sort((a, b) => a.n - b.n || (a.t.time || "99").localeCompare(b.t.time || "99"));
+  }
+  function whenWord(n) {
+    return n === 0 ? "сьогодні" : n === 1 ? "завтра" : "через " + n + " " + daysWord(n);
+  }
+  function openEventForm({ task = null, date = null, kind = "meeting" } = {}) {
+    const isNew = !task;
+    const f = isNew ? newTask({ kind, date: date || today() }) : JSON.parse(JSON.stringify(task));
+    let k = KINDS[f.kind] ? f.kind : "event";
+    const isB = () => k === "bday";
+    openSheet(isNew ? "Нова подія" : "Подія", `
+    <div class="fld"><span>Що це</span><div class="seg" id="e-kind">
+      ${Object.entries(KINDS).map(([v, o]) => `<button type="button" data-v="${v}" class="${k === v ? "on" : ""}">${o.e} ${o.n}</button>`).join("")}
+    </div></div>
+    <label class="fld"><span id="e-tl">${isB() ? "Кого вітати" : "Назва"}</span><input id="e-title" value="${esc(f.title)}" autocomplete="off" enterkeyhint="done"></label>
+    <div class="two">
+      <label class="fld"><span>Дата</span><input type="date" id="e-date" value="${f.date || today()}"></label>
+      <label class="fld" id="e-time-w" ${isB() ? "hidden" : ""}><span>Час</span><input type="time" id="e-time" value="${esc(f.time)}"></label>
+      <label class="fld" id="e-year-w" ${isB() ? "" : "hidden"}><span>Рік народження</span><input id="e-year" inputmode="numeric" placeholder="не обовʼязково" value="${f.birthYear || ""}"></label>
+    </div>
+    <p class="hint" id="e-bhint" style="margin:-8px 0 14px" ${isB() ? "" : "hidden"}>Повторюватиметься щороку. Рік народження потрібен, щоб показувати вік.</p>
+    <label class="fld" id="e-place-w" ${isB() ? "hidden" : ""}><span>Де</span><input id="e-place" value="${esc(f.place || "")}" placeholder="не обовʼязково" autocomplete="off"></label>
+    <label class="fld"><span>Нотатка</span><textarea id="e-note" placeholder="${isB() ? "Ідеї подарунка" : "Що взяти, з ким іду…"}">${esc(f.note)}</textarea></label>
+    <div class="actions">
+      ${isNew ? "" : '<button class="btn danger" id="e-del">Видалити</button>'}
+      <button class="btn ghost" data-close>Скасувати</button>
+      <button class="btn primary" id="e-save">Зберегти</button>
+    </div>`, (sh) => {
+      const q = (x) => sh.querySelector(x);
+      if (isNew) setTimeout(() => q("#e-title").focus(), 80);
+      segHandler(q("#e-kind"), (v) => {
+        k = v;
+        const b = isB();
+        q("#e-time-w").hidden = b;
+        q("#e-place-w").hidden = b;
+        q("#e-year-w").hidden = !b;
+        q("#e-bhint").hidden = !b;
+        q("#e-tl").textContent = b ? "Кого вітати" : "Назва";
+        q("#e-note").placeholder = b ? "Ідеї подарунка" : "Що взяти, з ким іду…";
+      });
+      q("#e-save").onclick = async () => {
+        f.title = q("#e-title").value.trim();
+        if (!f.title) {
+          q("#e-title").focus();
+          toast(isB() ? "Напиши, кого вітати" : "Напиши назву події");
+          return;
+        }
+        f.kind = k;
+        f.date = q("#e-date").value || today();
+        f.note = q("#e-note").value.trim();
+        f.weekOf = null;
+        delete f.goal;
+        if (isB()) {
+          const cy = new Date().getFullYear();
+          let y = parseInt(q("#e-year").value, 10);
+          const dy = +f.date.slice(0, 4);
+          if (!(y > 1900 && y <= cy) && dy < cy - 1) y = dy;
+          f.birthYear = y > 1900 && y <= cy ? y : null;
+          if (dy < cy - 1) f.date = cy - 1 + f.date.slice(4);
+          f.time = "";
+          f.place = "";
+          f.repeat = { type: "yearly" };
+        } else {
+          f.time = q("#e-time").value;
+          f.place = q("#e-place").value.trim();
+          f.repeat = { type: "none" };
+          delete f.birthYear;
+        }
+        await safe(saveTask(f));
+        closeSheet();
+        toast(isNew ? "Подію додано в календар" : "Збережено");
+      };
+      if (q("#e-del")) q("#e-del").onclick = async () => {
+        if (!confirm(`Видалити «${task.title}»?`)) return;
+        await safe(removeTask(task.id));
+        closeSheet();
+        toast("Видалено");
+      };
+    });
+  }
+  function openBdayImport() {
+    openSheet("Дні народження списком", `
+    <p class="hint" style="margin:-8px 0 12px">Кожен рядок: імʼя і дата. Рік можна не писати.<br>Мама 14.03.1968<br>Оля 2.11</p>
+    <label class="fld"><span>Список</span><textarea id="imp-b" style="min-height:170px"></textarea></label>
+    <div class="actions"><button class="btn ghost" data-close>Скасувати</button><button class="btn primary" id="imp-go">Додати</button></div>`, (sh) => {
+      sh.querySelector("#imp-go").onclick = async () => {
+        const cy = new Date().getFullYear();
+        const have = new Set([...data.tasks.values()].filter((t) => t.kind === "bday").map((t) => t.title.toLowerCase() + "|" + t.date.slice(5)));
+        let n = 0, bad = 0, dup = 0;
+        const list = [];
+        sh.querySelector("#imp-b").value.split("\n").forEach((l) => {
+          l = l.trim();
+          if (!l) return;
+          const m = l.match(/^(.+?)[\s,:;—–-]+(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?\s*$/);
+          if (!m) return bad++;
+          const d = +m[2], mo = +m[3];
+          if (d < 1 || d > 31 || mo < 1 || mo > 12) return bad++;
+          let y = m[4] ? +m[4] : null;
+          if (y && y < 100) y += y > 30 ? 1900 : 2000;
+          const md = String(mo).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+          const name = m[1].trim();
+          if (have.has(name.toLowerCase() + "|" + md)) return dup++;
+          list.push(newTask({ title: name, kind: "bday", date: cy - 1 + "-" + md, repeat: { type: "yearly" }, birthYear: y && y > 1900 && y <= cy ? y : null }));
+          n++;
+        });
+        for (const t of list) await safe(saveTask(t));
+        closeSheet();
+        toast("Додано " + n + (dup ? ", вже були: " + dup : "") + (bad ? ", не вдалося прочитати: " + bad : ""));
+      };
+    });
+  }
   function openCreateMenu(ctx = {}) {
     const d = ctx.date || today();
     const dayLabel = d === today() ? "\u043D\u0430 \u0441\u044C\u043E\u0433\u043E\u0434\u043D\u0456" : "\u043D\u0430 " + fmt(d);
     openSheet("\u0414\u043E\u0434\u0430\u0442\u0438", `<div class="menu">
     <button data-m="task"><span class="e">\u2611\uFE0F</span><span>\u041D\u043E\u0432\u0430 \u0441\u043F\u0440\u0430\u0432\u0430<small>${dayLabel}, \u043C\u043E\u0436\u043D\u0430 \u0437\u043C\u0456\u043D\u0438\u0442\u0438</small></span></button>
     <button data-m="repeat"><span class="e">\u{1F501}</span><span>\u041F\u043E\u0432\u0442\u043E\u0440\u044E\u0432\u0430\u043D\u0430 \u0441\u043F\u0440\u0430\u0432\u0430<small>\u0449\u043E\u0434\u043D\u044F, \u0443 \u043F\u0435\u0432\u043D\u0456 \u0434\u043D\u0456, \u0449\u043E\u043C\u0456\u0441\u044F\u0446\u044F\u2026</small></span></button>
+    <button data-ev="1"><span class="e">🎉</span><span>Подія в календар<small>зустріч, день народження, концерт…</small></span></button>
     <button data-m="plan"><span class="e">\u{1F4CC}</span><span>\u041F\u043B\u0430\u043D \u0431\u0435\u0437 \u0434\u0430\u0442\u0438<small>\u043F\u043E\u0442\u0440\u0430\u043F\u0438\u0442\u044C \u0443 \xAB\u041F\u043B\u0430\u043D\u0438\xBB</small></span></button>
     <button data-m="week"><span class="e">\u{1F5D3}\uFE0F</span><span>\u041F\u043B\u0430\u043D \u043D\u0430 \u0442\u0438\u0436\u0434\u0435\u043D\u044C<small>\u0431\u0435\u0437 \u043A\u043E\u043D\u043A\u0440\u0435\u0442\u043D\u043E\u0433\u043E \u0434\u043D\u044F</small></span></button>
   </div>`, (sh) => {
       sh.querySelector(".menu").addEventListener("click", (e) => {
+        if (e.target.closest("[data-ev]")) {
+          openEventForm({ date: ctx.date });
+          return;
+        }
         const b = e.target.closest("[data-m]");
         if (!b) return;
         openTaskForm({ mode: b.dataset.m, date: d, weekOf: ctx.weekOf, category: ctx.category });
@@ -1081,6 +1231,7 @@ details.fold[open] summary::before{content:"▾ "}
       <div class="list">${list.map((e) => rowHTML(e)).join("")}</div>`;
     }).join("");
     const sig = signals().slice(0, 3);
+    const soon = upcomingEvents(addDays(dk, 1), 6).filter((x) => x.t.kind === "bday" ? x.n <= 6 : x.n <= 2).slice(0, 3);
     el.innerHTML = `
     <div class="brand">${LOGO}\u041C\u0456\u0439 \u043F\u043B\u0430\u043D\u0435\u0440</div>
     <header class="head"><div>
@@ -1093,7 +1244,7 @@ details.fold[open] summary::before{content:"▾ "}
       <div class="bar"><span style="width:${done / total * 100}%;background:var(--done)"></span><span style="width:${missed / total * 100}%;background:var(--miss)"></span></div>
     </div>` : ""}
 
-    ${sig.length ? `<div class="signals">${sig.map(signalHTML).join("")}</div>` : ""}
+    ${soon.length || sig.length ? `<div class="signals">${soon.map(({ t, n }) => signalHTML({ e: t.kind === "bday" ? "🎁" : KINDS[t.kind].e, cc: KINDS[t.kind].c, text: t.kind === "bday" ? `${whenWord(n + 1)[0].toUpperCase() + whenWord(n + 1).slice(1)} день народження: ${esc(t.title)}${t.birthYear ? " (" + (parse(addDays(dk, n + 1)).getFullYear() - t.birthYear) + ")" : ""}` : `${whenWord(n + 1)[0].toUpperCase() + whenWord(n + 1).slice(1)}: ${esc(t.title)}${t.time ? ", " + esc(t.time) : ""}${t.place ? ", " + esc(t.place) : ""}` })).join("")}${sig.map(signalHTML).join("")}</div>` : ""}
 
     ${groups || `<div class="empty" style="margin-top:18px">\u041D\u0430 \u0441\u044C\u043E\u0433\u043E\u0434\u043D\u0456 \u0441\u043F\u0440\u0430\u0432 \u043D\u0435\u043C\u0430\u0454.<br>\u041D\u0430\u0442\u0438\u0441\u043D\u0438 +, \u0449\u043E\u0431 \u0434\u043E\u0434\u0430\u0442\u0438.</div>`}
 
@@ -1154,37 +1305,45 @@ details.fold[open] summary::before{content:"▾ "}
     const last = key(new Date(y, m, 0));
     const start = mondayOf(first);
     const end = addDays(mondayOf(last), 6);
+    const pointOn = (k) => entriesOn(k).filter((e) => isPoint(e.t) && e.st !== "moved");
     let cells = WD.map((w) => `<div class="cal-wd">${w}</div>`).join("");
     for (let k = start; k <= end; k = addDays(k, 1)) {
-      const es2 = entriesOn(k);
+      const es2 = pointOn(k);
       const dots = [];
-      if (es2.some((e) => e.st === "open")) dots.push('<i class="o"></i>');
-      if (es2.some((e) => e.st === "done")) dots.push('<i class="ok"></i>');
-      if (es2.some((e) => e.st === "missed")) dots.push('<i class="no"></i>');
+      if (es2.some((e) => e.t.kind === "bday")) dots.push('<i class="bd"></i>');
+      if (es2.some((e) => e.t.kind && e.t.kind !== "bday")) dots.push('<i class="ev"></i>');
+      if (es2.some((e) => !e.t.kind)) dots.push('<i class="tk"></i>');
       const out = parse(k).getMonth() !== m - 1;
       cells += `<button class="cal-d ${out ? "out" : ""} ${k === t0 ? "today" : ""} ${k === state2.calSel ? "sel" : ""}" data-cd="${k}" aria-label="${fmtFull(k)}">
       <span class="n">${parse(k).getDate()}</span><span class="dots">${dots.join("")}</span></button>`;
     }
     const sel = state2.calSel;
-    const es = entriesOn(sel);
+    const es = pointOn(sel);
     const isThisMonth = state2.month === t0.slice(0, 7);
+    const up = upcomingEvents(t0, 60).slice(0, 6);
     el.innerHTML = `
     <header class="head"><div>
       <h1 class="title">${MONN[m - 1]}</h1>
-      <p class="subtitle">${y}</p>
+      <p class="subtitle">${y} · події й справи з датою</p>
     </div>
     <div class="nav-btns">
-      ${isThisMonth && sel === t0 ? "" : '<button class="pill-btn" data-mo="today">\u0421\u044C\u043E\u0433\u043E\u0434\u043D\u0456</button>'}
-      <button class="icon-btn" data-mo="-1" aria-label="\u041F\u043E\u043F\u0435\u0440\u0435\u0434\u043D\u0456\u0439 \u043C\u0456\u0441\u044F\u0446\u044C">\u2039</button>
-      <button class="icon-btn" data-mo="1" aria-label="\u041D\u0430\u0441\u0442\u0443\u043F\u043D\u0438\u0439 \u043C\u0456\u0441\u044F\u0446\u044C">\u203A</button>
+      ${isThisMonth && sel === t0 ? "" : '<button class="pill-btn" data-mo="today">Сьогодні</button>'}
+      <button class="icon-btn" data-mo="-1" aria-label="Попередній місяць">‹</button>
+      <button class="icon-btn" data-mo="1" aria-label="Наступний місяць">›</button>
     </div></header>
 
     <div class="cal"><div class="cal-grid">${cells}</div>
-      <div class="legend"><span><i style="background:#3B82F6"></i>\u0437\u0430\u043F\u043B\u0430\u043D\u043E\u0432\u0430\u043D\u043E</span><span><i style="background:var(--done)"></i>\u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E</span><span><i style="background:var(--miss)"></i>\u043D\u0435 \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E</span></div>
+      <div class="legend"><span><i class="lg-bd"></i>дні народження</span><span><i class="lg-ev"></i>події</span><span><i class="lg-tk"></i>справи з датою</span></div>
     </div>
 
-    <div class="sec">${fmtFull(sel)}${sel === t0 ? ", \u0441\u044C\u043E\u0433\u043E\u0434\u043D\u0456" : ""}<span class="sp"></span><button class="add" data-add-day="${sel}">+ \u0414\u043E\u0434\u0430\u0442\u0438</button></div>
-    ${es.length ? `<div class="list">${es.map((e) => rowHTML(e)).join("")}</div>` : '<div class="empty">\u041D\u0430 \u0446\u0435\u0439 \u0434\u0435\u043D\u044C \u043D\u0456\u0447\u043E\u0433\u043E \u043D\u0435\u043C\u0430\u0454.</div>'}
+    <div class="sec">${fmtFull(sel)}${sel === t0 ? ", сьогодні" : ""}<span class="sp"></span><button class="add" data-add-ev="${sel}">+ Подія</button></div>
+    ${es.length ? `<div class="list">${es.map((e) => rowHTML(e)).join("")}</div>` : '<div class="empty">Цей день вільний.</div>'}
+
+    <div class="sec">Найближчі події<span class="sp"></span><button class="add" data-bimport>Вставити список ДН</button></div>
+    ${up.length ? `<div class="list">${up.map(({ t, k, n }) => {
+      const age = t.kind === "bday" && t.birthYear ? parse(k).getFullYear() - t.birthYear : 0;
+      return `<div class="row up" data-id="${t.id}" style="--cc:${KINDS[t.kind].c}"><button class="body" data-a="open"><span class="t">${KINDS[t.kind].e} ${esc(t.title)}</span><span class="m"><span>${fmtFull(k)}${t.time ? ", " + esc(t.time) : ""}</span>${age > 0 ? `<span>буде ${age}</span>` : ""}${t.place ? `<span>📍 ${esc(t.place)}</span>` : ""}</span></button><div class="cd">${n === 0 ? "сьог." : n}<small>${n === 0 ? "" : daysWord(n)}</small></div></div>`;
+    }).join("")}</div>` : '<div class="empty">Подій поки немає. Додай зустріч, концерт чи день народження через +.</div>'}
   `;
   }
 
@@ -1328,7 +1487,10 @@ details.fold[open] summary::before{content:"▾ "}
     }
     if (el.closest("[data-plus]")) {
       const ctx = {};
-      if (state.view === "calendar") ctx.date = state.calSel;
+      if (state.view === "calendar") {
+      openEventForm({ date: state.calSel >= today() ? state.calSel : today() });
+      return;
+    }
       if (state.view === "week") ctx.weekOf = state.week;
       if (state.view === "plans" && state.planCat !== "all") ctx.category = state.planCat;
       openCreateMenu(ctx);
@@ -1354,7 +1516,8 @@ details.fold[open] summary::before{content:"▾ "}
           openMove(t, dk);
           break;
         case "open":
-          openTaskForm({ task: t, dk });
+          if (t.kind) openEventForm({ task: t });
+          else openTaskForm({ task: t, dk });
           break;
         case "schedule":
           openSchedule(t);
@@ -1366,6 +1529,15 @@ details.fold[open] summary::before{content:"▾ "}
           if (t.done) toast("\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E, \u043B\u0438\u0448\u0430\u0454\u0442\u044C\u0441\u044F \u0432 \u043F\u043B\u0430\u043D\u0430\u0445 \u0437 \u0434\u0430\u0442\u043E\u044E");
           break;
       }
+      return;
+    }
+    if (el.closest("[data-bimport]")) {
+      openBdayImport();
+      return;
+    }
+    const addEv = el.closest("[data-add-ev]");
+    if (addEv) {
+      openEventForm({ date: addEv.dataset.addEv });
       return;
     }
     const addDay = el.closest("[data-add-day]");
@@ -1420,7 +1592,7 @@ details.fold[open] summary::before{content:"▾ "}
     const ot = el.closest("[data-open-task]");
     if (ot) {
       const t = data.tasks.get(ot.dataset.openTask);
-      if (t) openTaskForm({ task: t });
+      if (t) t.kind ? openEventForm({ task: t }) : openTaskForm({ task: t });
       return;
     }
     if (el.closest("[data-export]")) {
