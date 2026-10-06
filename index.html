@@ -8,131 +8,150 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Планер">
-<meta name="theme-color" content="#F2F1F7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#15141F" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F4ECE2" id="theme-color">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <style>
-/* ---------- Кольори (світла / темна тема) ---------- */
+/* ---------- Кольорові гами (обирається в «Ще») ---------- */
 :root{
-  --bg:#F2F1F7; --surface:#FFFFFF; --surface2:#ECEBF3; --ink:#1D1B2E; --muted:#6E6B85; --line:#E1DFEB;
-  --accent:#5A4FCF; --accent-ink:#FFFFFF; --accent-soft:#E7E4FB;
-  --done:#2E9B67; --miss:#D24B5E; --moved:#B7800D; --skip:#8C8AA0;
-  --p-high:#E0474C; --p-mid:#E6A817; --p-low:#B3B1C4;
-  --shadow:0 1px 2px rgba(29,27,46,.05);
+  /* Теплий беж */
+  --bg:#F4ECE2; --on-bg:#3A2A22; --on-bg-muted:#85705F; --bg-line:#E2D5C5;
+  --surface:#FFFBF6; --surface2:#F5EDE3; --ink:#3A2A22; --muted:#85705F; --line:#E8DCCD;
+  --accent:#C2603D; --accent-ink:#FFFFFF; --accent-soft:#F6E2D8;
+  --done:#5E8A52; --miss:#C8454E; --moved:#B47A1A; --skip:#9A8B7E;
+  --p-high:#D9473F; --p-mid:#E0A21E; --p-low:#C9BBAE;
+  --c-doctor:#3D8A9A; --c-jesya:#C25588; --c-shop:#C98A2B; --c-hobby:#5E8A52; --c-home:#8A6BB0; --c-work:#4F72B8; --c-other:#8C8478;
+  --shadow:0 2px 10px rgba(80,50,30,.07);
   --tabbar-h:64px;
-  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
-  --font-round:ui-rounded,-apple-system,"SF Pro Rounded","Segoe UI",Roboto,sans-serif;
+  --font:"Nunito",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  --font-round:"Comfortaa",ui-rounded,-apple-system,"SF Pro Rounded","Segoe UI",Roboto,sans-serif;
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#15141F; --surface:#201F2D; --surface2:#2A2939; --ink:#EEEDF5; --muted:#A09DB8; --line:#312F43;
-    --accent:#9187FF; --accent-ink:#15141F; --accent-soft:#2D2A4D;
-    --done:#4FC98C; --miss:#FF6E82; --moved:#E8B447; --skip:#8C8AA0;
-    --p-high:#FF6B6F; --p-mid:#F2BE3C; --p-low:#5F5C75;
-    --shadow:none; color-scheme:dark;
-  }
+:root[data-palette="lavender"]{
+  --bg:#EEE9F7; --on-bg:#2D2140; --on-bg-muted:#776A8C; --bg-line:#DCD3EC;
+  --surface:#FFFFFF; --surface2:#F3EFFA; --ink:#2D2140; --muted:#776A8C; --line:#E4DCF0;
+  --accent:#7A4B9C; --accent-ink:#FFFFFF; --accent-soft:#EBE0F4;
+  --done:#3F9C7E; --miss:#C9466B; --moved:#B57F1A; --skip:#8E86A3;
+  --p-high:#D9475F; --p-mid:#E2A72A; --p-low:#C5BCD6;
+  --shadow:0 2px 10px rgba(60,30,90,.08);
 }
-:root[data-theme="dark"]{
-  --bg:#15141F; --surface:#201F2D; --surface2:#2A2939; --ink:#EEEDF5; --muted:#A09DB8; --line:#312F43;
-  --accent:#9187FF; --accent-ink:#15141F; --accent-soft:#2D2A4D;
-  --done:#4FC98C; --miss:#FF6E82; --moved:#E8B447; --skip:#8C8AA0;
-  --p-high:#FF6B6F; --p-mid:#F2BE3C; --p-low:#5F5C75;
-  --shadow:none; color-scheme:dark;
+:root[data-palette="mint"]{
+  --bg:#E4F2EE; --on-bg:#16303A; --on-bg-muted:#5C7A80; --bg-line:#CCE3DC;
+  --surface:#FFFFFF; --surface2:#EEF7F4; --ink:#16303A; --muted:#5C7A80; --line:#D3E7E1;
+  --accent:#1F7A75; --accent-ink:#FFFFFF; --accent-soft:#D5ECE8;
+  --done:#3B9358; --miss:#C94552; --moved:#B07A18; --skip:#82999C;
+  --p-high:#D6474B; --p-mid:#E0A325; --p-low:#B8CCC8;
+  --shadow:0 2px 10px rgba(20,60,60,.07);
+}
+:root[data-palette="forest"]{
+  --bg:#1F3A2E; --on-bg:#F3EEDF; --on-bg-muted:#B4C2AE; --bg-line:#355443;
+  --surface:#F6F1E3; --surface2:#ECE5D2; --ink:#22301F; --muted:#6B705C; --line:#E0D8C1;
+  --accent:#2E6248; --accent-ink:#F6F1E3; --accent-soft:#F1E2BD;
+  --done:#5F8A3A; --miss:#B8483F; --moved:#A7741A; --skip:#7D806C;
+  --p-high:#C9463E; --p-mid:#D9A53A; --p-low:#BDB59C;
+  --shadow:0 2px 12px rgba(0,0,0,.18);
 }
 
 /* ---------- База ---------- */
 *,*::before,*::after{box-sizing:border-box}
 html{height:100%;-webkit-text-size-adjust:100%}
-body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.4;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--on-bg);transition:background .25s;font-family:var(--font);font-size:17px;line-height:1.4;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none;padding:0}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 [hidden]{display:none!important}
 
 .main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px calc(var(--tabbar-h) + env(safe-area-inset-bottom,0px) + 28px)}
-.loading{color:var(--muted);text-align:center;margin-top:30vh}
+.loading{color:var(--on-bg-muted);text-align:center;margin-top:30vh}
 
 /* ---------- Нижнє меню ---------- */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-template-columns:repeat(6,1fr);align-items:center;
   padding:6px max(6px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));
   background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+.tabbar{color:var(--ink)}
 .tabbar button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;color:var(--muted);min-height:48px;justify-content:center}
 .tabbar svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tabbar span{font-size:10.5px;font-weight:600}
 .tabbar button.on{color:var(--accent)}
-.tabbar .plus{justify-self:center;width:50px;height:50px;min-height:0;border-radius:17px;background:var(--accent);color:var(--accent-ink)}
+.tabbar .plus{justify-self:center;width:50px;height:50px;min-height:0;border-radius:18px;background:var(--accent);color:var(--accent-ink)}
 .tabbar .plus svg{width:26px;height:26px;stroke-width:2.4}
 
 /* ---------- Заголовки ---------- */
 .head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:10px 0 4px}
 .title{font-family:var(--font-round);font-weight:700;font-size:32px;line-height:1.1;margin:0;letter-spacing:-.01em}
-.subtitle{color:var(--muted);font-size:15px;margin:4px 0 0;font-weight:500}
+.subtitle{color:var(--on-bg-muted);font-size:15px;margin:4px 0 0;font-weight:500}
 .nav-btns{display:flex;gap:6px;flex:none}
-.icon-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);display:grid;place-items:center;font-size:20px;color:var(--ink);box-shadow:var(--shadow)}
-.pill-btn{height:40px;border-radius:12px;background:var(--surface);padding:0 12px;font-size:14px;font-weight:600;color:var(--accent);box-shadow:var(--shadow)}
+.icon-btn{width:40px;height:40px;border-radius:14px;background:var(--surface);display:grid;place-items:center;font-size:20px;color:var(--ink);box-shadow:var(--shadow)}
+.pill-btn{height:40px;border-radius:14px;background:var(--surface);padding:0 12px;font-size:14px;font-weight:600;color:var(--accent);box-shadow:var(--shadow)}
 
 .progress{margin:16px 0 6px}
-.progress .nums{display:flex;gap:14px;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:8px}
-.progress .nums .ok{color:var(--done)} .progress .nums .no{color:var(--miss)} .progress .nums .mv{color:var(--moved)}
-.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;display:flex}
+.progress .nums{display:flex;gap:14px;font-size:14px;font-weight:700;color:var(--on-bg-muted);margin-bottom:8px}
+.progress .nums .ok,.progress .nums .no,.progress .nums .mv{color:var(--on-bg)}
+.bar{height:8px;border-radius:8px;background:var(--bg-line);overflow:hidden;display:flex}
 .bar span{height:100%}
 
-.sec{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted);margin:24px 2px 8px}
+.sec{display:flex;align-items:center;gap:8px;font-family:var(--font-round);font-size:14px;font-weight:700;color:var(--on-bg-muted);margin:24px 2px 8px}
 .sec .cnt{font-weight:600;opacity:.8}
 .sec .sp{flex:1}
-.sec .add{color:var(--accent);font-size:14px;font-weight:600;padding:4px 2px}
+.sec .add{color:var(--on-bg);text-decoration:underline;text-underline-offset:3px;font-size:14px;font-weight:600;padding:4px 2px}
 
 /* ---------- Рядок справи ---------- */
 .list{display:flex;flex-direction:column;gap:8px}
-.row{display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:16px;padding:8px 8px 8px 10px;box-shadow:var(--shadow);min-height:60px}
+.row{--cc:var(--c-other);display:flex;align-items:center;gap:6px;color:var(--ink);background:color-mix(in srgb,var(--cc) 11%,var(--surface));border-radius:20px;padding:8px 8px 8px 10px;box-shadow:var(--shadow);min-height:60px}
 .row .pdot{width:8px;height:8px;border-radius:50%;flex:none;margin:0 2px 0 0}
 .pdot.high{background:var(--p-high)} .pdot.mid{background:var(--p-mid)} .pdot.low{background:var(--p-low)}
 .row .body{flex:1;min-width:0;text-align:left;padding:4px 4px;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
-.row .t{font-weight:600;font-size:16.5px;overflow-wrap:anywhere}
+.row .t{font-weight:700;font-size:16.5px;overflow-wrap:anywhere}
 .row .m{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
 .row .m .s-miss{color:var(--miss);font-weight:600}
 .row .m .s-moved{color:var(--moved);font-weight:600}
 .row .m .s-skip{color:var(--skip);font-weight:600}
 .row .m .s-done{color:var(--done);font-weight:600}
+.row .m .s-closed{color:var(--done);font-weight:800}
+.row .m .s-fire{color:var(--accent);font-weight:800}
+.row .m .cat{color:var(--cc);font-weight:700}
+.row.done{background:var(--surface)}
 .row.done .t{text-decoration:line-through;color:var(--muted)}
 .row.moved,.row.skipped{opacity:.72}
 .row.moved .t,.row.skipped .t{color:var(--muted)}
 
 .acts{display:flex;gap:4px;flex:none}
-.act{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:17px;font-weight:700;color:var(--muted);background:var(--surface2)}
+.act{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:17px;font-weight:700;color:var(--muted);background:var(--surface)}
 .act.done.on{background:var(--done);color:#fff}
 .act.miss.on{background:var(--miss);color:#fff}
 .act.move{color:var(--moved)}
 .act.txt{width:auto;padding:0 12px;font-size:14px;font-weight:600;color:var(--accent);background:var(--accent-soft)}
 
-.chk{width:30px;height:30px;border-radius:10px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px}
+.chk{width:30px;height:30px;border-radius:11px;border:2px solid color-mix(in srgb,var(--cc) 45%,var(--line));background:var(--surface);flex:none;display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px}
 .chk.on{background:var(--done);border-color:var(--done)}
 
-.empty{color:var(--muted);text-align:center;padding:26px 14px;border:1.5px dashed var(--line);border-radius:16px;font-size:15px}
-.hint{font-size:13px;color:var(--muted);margin:6px 2px 0}
-.link{color:var(--accent);font-weight:600;font-size:15px;padding:8px 2px}
+.empty{color:var(--on-bg-muted);text-align:center;padding:26px 14px;border:2px dashed var(--bg-line);border-radius:20px;font-size:15px}
+.hint{font-size:13px;color:var(--on-bg-muted);margin:6px 2px 0}
+.link{color:var(--on-bg);text-decoration:underline;text-underline-offset:3px;font-weight:600;font-size:15px;padding:8px 2px}
 
 /* ---------- Тиждень ---------- */
-.day-block{background:var(--surface);border-radius:18px;padding:12px 12px 12px;margin-bottom:10px;box-shadow:var(--shadow)}
+.day-block{background:var(--surface);color:var(--ink);border-radius:22px;padding:12px 12px 12px;margin-bottom:10px;box-shadow:var(--shadow)}
 .day-block.today{box-shadow:inset 0 0 0 2px var(--accent)}
 .day-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .day-h b{font-family:var(--font-round);font-size:17px}
 .day-h .d{color:var(--muted);font-size:14px;font-weight:600}
 .day-h .sp{flex:1}
 .day-h .plus-s{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-size:20px;font-weight:600;display:grid;place-items:center}
-.day-block .row{box-shadow:none;background:var(--surface2);min-height:54px}
-.day-block .row .act:not(.on):not(.txt){background:var(--surface)}
+.day-block .row{box-shadow:none;background:color-mix(in srgb,var(--cc) 12%,var(--surface2));min-height:54px}
+.day-block .row.done{background:var(--surface2)}
+
 .day-block .none{font-size:14px;color:var(--muted);padding:2px 2px 2px}
 
 .quick{display:flex;gap:8px;margin:8px 0}
-.quick input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;font-size:16px}
-.quick button{background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:0 16px;font-weight:700;font-size:15px}
+.quick input{flex:1;min-width:0;border:none;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);border-radius:16px;padding:12px 14px;font-size:16px}
+.quick button{background:var(--accent);color:var(--accent-ink);border-radius:16px;padding:0 16px;font-weight:700;font-size:15px}
 
 /* ---------- Календар ---------- */
-.cal{background:var(--surface);border-radius:20px;padding:10px 8px 8px;margin-top:14px;box-shadow:var(--shadow)}
+.cal{background:var(--surface);color:var(--ink);border-radius:22px;padding:10px 8px 8px;margin-top:14px;box-shadow:var(--shadow)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .cal-wd{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding:4px 0 6px}
 .cal-d{aspect-ratio:1/1.05;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;gap:4px;font-size:16px;font-weight:600}
@@ -150,15 +169,15 @@ button{cursor:pointer;background:none;border:none;padding:0}
 /* ---------- Плани ---------- */
 .chips{display:flex;gap:6px;overflow-x:auto;margin:14px -16px 4px;padding:2px 16px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;border-radius:999px;padding:8px 14px;background:var(--surface);font-size:14px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow)}
-.chip.on{background:var(--ink);color:var(--bg)}
+.chip{flex:none;border-radius:999px;padding:8px 14px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow)}
+.chip.on{background:var(--accent);color:var(--accent-ink)}
 details.fold{margin-top:18px}
-details.fold summary{color:var(--muted);font-weight:700;font-size:14px;padding:6px 2px;list-style:none}
+details.fold summary{color:var(--on-bg-muted);font-weight:700;font-size:14px;padding:6px 2px;list-style:none}
 details.fold summary::before{content:"▸ "}
 details.fold[open] summary::before{content:"▾ "}
 
 /* ---------- Ще ---------- */
-.card{background:var(--surface);border-radius:18px;padding:16px;margin-top:14px;box-shadow:var(--shadow)}
+.card{background:var(--surface);color:var(--ink);border-radius:22px;padding:16px;margin-top:14px;box-shadow:var(--shadow)}
 .card h2{font-size:17px;margin:0 0 4px}
 .card p{color:var(--muted);font-size:14px;margin:0 0 12px}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -166,7 +185,7 @@ details.fold[open] summary::before{content:"▾ "}
 /* ---------- Нижні вікна ---------- */
 .sheet-bg{position:fixed;inset:0;z-index:30;background:rgba(12,10,24,.42);display:flex;align-items:flex-end;justify-content:center}
 .sheet{width:100%;max-width:640px;max-height:calc(100% - env(safe-area-inset-top,0px) - 20px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  background:var(--surface);border-radius:22px 22px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out}
+  background:var(--surface);color:var(--ink);border-radius:28px 28px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out}
 @keyframes up{from{transform:translateY(30px);opacity:.5}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}}
 .grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
@@ -178,7 +197,7 @@ details.fold[open] summary::before{content:"▾ "}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{border-radius:999px;padding:9px 13px;background:var(--surface2);font-size:14.5px;font-weight:600;min-height:40px}
-.seg button.on{background:var(--ink);color:var(--bg)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
 .seg.full{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface2);border-radius:12px;padding:3px;gap:3px}
 .seg.full button{border-radius:10px;background:none}
 .seg.full button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -198,8 +217,56 @@ details.fold[open] summary::before{content:"▾ "}
 .hist li:last-child{border-bottom:none}
 .this-day{background:var(--surface2);border-radius:14px;padding:12px;margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-size:15px}
 
-.toast{position:fixed;left:50%;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:15px;font-weight:600;z-index:40;max-width:90%;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:11px 16px;border-radius:12px;font-size:15px;font-weight:600;z-index:40;max-width:90%;text-align:center}
 
+/* ---------- Логотип ---------- */
+.brand{display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-family:var(--font-round);font-weight:700;font-size:15px;color:var(--on-bg)}
+.logo{width:30px;height:30px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.logo svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Сигнали й статистика ---------- */
+.signal{display:flex;gap:10px;align-items:flex-start;background:color-mix(in srgb,var(--cc,var(--accent)) 14%,var(--surface));color:var(--ink);border-radius:18px;padding:12px 14px;font-size:15px;font-weight:600;box-shadow:var(--shadow)}
+.signal .e{font-size:18px;line-height:1.2}
+.signals{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.kpi{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.kpi b{font-family:var(--font-round);font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-weight:700;font-size:15px}
+.kpi .delta{margin-left:auto;font-size:13px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--surface2)}
+.kpi .delta.up{color:var(--done)} .kpi .delta.down{color:var(--miss)}
+.days-chart{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:16px;align-items:end}
+.dc{display:flex;flex-direction:column;align-items:center;gap:5px}
+.dc .col{width:100%;max-width:32px;height:78px;border-radius:10px;background:var(--surface2);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.dc .col i{display:block;background:var(--done)}
+.dc .col i.no{background:var(--miss);opacity:.75}
+.dc small{font-size:12px;font-weight:800;color:var(--muted)}
+.dc small.today{color:var(--accent)}
+.dc em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.best{margin:12px 0 0;font-size:14px;font-weight:700;color:var(--muted)}
+.habit{--cc:var(--c-other);display:block;width:100%;text-align:left;background:color-mix(in srgb,var(--cc) 11%,var(--surface));color:var(--ink);border-radius:20px;padding:12px 14px;box-shadow:var(--shadow)}
+.habit .top{display:flex;align-items:center;gap:8px}
+.habit .top .t{flex:1;min-width:0;font-weight:800;overflow-wrap:anywhere}
+.habit .top .n{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.cells{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.cells span{height:24px;border-radius:8px;background:var(--surface);display:grid;place-items:center;font-size:10.5px;font-weight:800;color:var(--muted)}
+.cells span.off{background:transparent;border:1.5px dashed var(--line)}
+.cells span.ok{background:var(--done);color:#fff}
+.cells span.no{background:var(--miss);color:#fff}
+.cells span.sk{background:var(--surface2);color:var(--skip)}
+.chal{margin-top:10px;font-size:13px;font-weight:700;color:var(--muted)}
+.chal .track{height:8px;border-radius:8px;background:var(--surface);overflow:hidden;margin-top:5px}
+.chal .track i{display:block;height:100%;border-radius:8px;background:var(--cc)}
+.badge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--surface);color:var(--accent);white-space:nowrap}
+.badge.warn{color:var(--miss)}
+
+/* ---------- Вибір кольорів ---------- */
+.pals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pal{border:2px solid transparent;border-radius:20px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:8px}
+.pal.on{border-color:var(--ink)}
+.pal .mini{border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:5px}
+.pal .mini span{display:block;height:12px;border-radius:6px}
+.pal b{font-size:14px;font-weight:800}
+@media (prefers-reduced-motion:reduce){body{transition:none}}
+.sheet .hint,.card .hint{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -504,6 +571,146 @@ details.fold[open] summary::before{content:"▾ "}
     const t0 = today(), from = addDays(t0, -60);
     return [...data.tasks.values()].filter((t) => t.date && !isRepeating(t) && t.date < t0 && t.date >= from).map((t) => ({ t, dk: t.date, h: hist(t.id, t.date) })).filter((e) => !e.h || e.h.status === "missed").map((e) => ({ ...e, st: e.h ? e.h.status : "open" })).sort((a, b) => a.dk.localeCompare(b.dk));
   }
+  // ---- статистика, серії, челенджі ----
+  function occBack(t, n) {
+    const out = [], t0 = today();
+    if (!t.date) return out;
+    for (let i = 0; i < 400 && out.length < n; i++) {
+      const k = addDays(t0, -i);
+      if (k < t.date) break;
+      if (occurs(t, k)) out.push(k);
+    }
+    return out;
+  }
+  function streak(t) {
+    const t0 = today();
+    let n = 0;
+    for (const k of occBack(t, 400)) {
+      const h = hist(t.id, k), st = h ? h.status : "open";
+      if (st === "skipped" || st === "moved" || k === t0 && st === "open") continue;
+      if (st === "done") n++;
+      else break;
+    }
+    return n;
+  }
+  function gapOf(t) {
+    const t0 = today();
+    let n = 0;
+    for (const k of occBack(t, 60)) {
+      const h = hist(t.id, k), st = h ? h.status : "open";
+      if (st === "skipped" || st === "moved" || k === t0 && st === "open") continue;
+      if (st === "done") break;
+      n++;
+    }
+    return n;
+  }
+  function lastDone(t) {
+    return occBack(t, 400).find((k) => {
+      const h = hist(t.id, k);
+      return h && h.status === "done";
+    }) || "";
+  }
+  function timesWord(n) {
+    const a = n % 100, b = a % 10;
+    if (a > 10 && a < 20) return "\u0440\u0430\u0437\u0456\u0432";
+    if (b === 1) return "\u0440\u0430\u0437";
+    if (b >= 2 && b <= 4) return "\u0440\u0430\u0437\u0438";
+    return "\u0440\u0430\u0437\u0456\u0432";
+  }
+  var unitWord = (t, n) => t.repeat.type === "daily" ? daysWord(n) : timesWord(n);
+  var habits = () => [...data.tasks.values()].filter((t) => isRepeating(t) && !t.origin);
+  function signals() {
+    const t0 = today(), out = [];
+    for (const t of habits()) {
+      const name = "\xAB" + esc(t.title) + "\xBB", cc = "var(--c-" + (CATS[t.category] ? t.category : "other") + ")";
+      const g = gapOf(t), sk = streak(t);
+      if (g >= 3) {
+        const ld = lastDone(t), d = diff(ld || t.date, t0);
+        if (d >= 3) {
+          out.push({ w: 4, e: "\u{1F331}", cc: "var(--miss)", text: `${name} \u043F\u043E\u043A\u0438\u043D\u0443\u0442\u043E: ${d} ${daysWord(d)} \u0431\u0435\u0437 \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043D\u044F. \u0427\u0430\u0441 \u043F\u043E\u0432\u0435\u0440\u0442\u0430\u0442\u0438\u0441\u044F!` });
+          continue;
+        }
+      }
+      if (t.goal && sk >= t.goal) out.push({ w: 3, e: "\u{1F3C6}", cc, text: `\u0427\u0435\u043B\u0435\u043D\u0434\u0436 ${name} \u043F\u0440\u043E\u0439\u0434\u0435\u043D\u043E: ${t.goal} ${unitWord(t, t.goal)} \u043F\u043E\u0441\u043F\u0456\u043B\u044C!` });
+      else if (t.goal && sk > 0) out.push({ w: 1, e: "\u{1F4AA}", cc, text: `\u0427\u0435\u043B\u0435\u043D\u0434\u0436 ${name}: ${sk} \u0437 ${t.goal}` });
+      else {
+        const m = [100, 50, 30, 21, 14, 7].find((x) => sk >= x);
+        if (m) out.push({ w: 2, e: "\u{1F389}", cc, text: `${name}: ${m} ${unitWord(t, m)} \u043F\u043E\u0441\u043F\u0456\u043B\u044C!` });
+      }
+    }
+    return out.sort((a, b) => b.w - a.w);
+  }
+  var signalHTML = (g) => `<div class="signal" style="--cc:${g.cc}"><span class="e">${g.e}</span><span>${g.text}</span></div>`;
+  function weekNums(mon) {
+    const t0 = today(), per = [];
+    let done = 0, all = 0;
+    for (let i = 0; i < 7; i++) {
+      const k = addDays(mon, i);
+      const es = k <= t0 ? entriesOn(k).filter((e) => e.st !== "moved" && e.st !== "skipped") : [];
+      const d = es.filter((e) => e.st === "done").length, m = es.filter((e) => e.st === "missed").length;
+      per.push({ k, d, m, a: es.length });
+      done += d;
+      all += es.length;
+    }
+    return { done, all, per, pct: all ? Math.round(done / all * 100) : 0 };
+  }
+  function closedIn(mon) {
+    const end = addDays(mon, 6), out = [];
+    for (const t of data.tasks.values()) {
+      if (isRepeating(t)) continue;
+      if (t.done && t.doneAt) {
+        const c = t.doneAt.slice(0, 10);
+        if (c >= mon && c <= end) out.push({ t, c });
+      } else if (t.date) {
+        const h = hist(t.id, t.date);
+        if (h && h.status === "done") {
+          const c = (h.doneAt || h.at || t.date).slice(0, 10);
+          if (c >= mon && c <= end) out.push({ t, c });
+        }
+      }
+    }
+    return out.sort((a, b) => b.c.localeCompare(a.c));
+  }
+  function statsHTML(mon) {
+    const t0 = today(), isThis = mon === mondayOf(t0);
+    const w = weekNums(mon), pw = weekNums(addDays(mon, -7));
+    const delta = w.all && pw.all ? w.pct - pw.pct : null;
+    const best = w.per.filter((p) => p.a && p.d).sort((a, b) => b.d / b.a - a.d / a.a || b.d - a.d)[0];
+    const sig = isThis ? signals() : [];
+    const chart = w.per.map((p, i) => {
+      const h = p.a ? Math.round(p.d / p.a * 100) : 0, hm = p.a ? Math.round(p.m / p.a * 100) : 0;
+      return `<div class="dc"><div class="col"><i class="no" style="height:${hm}%"></i><i style="height:${h}%"></i></div><small class="${p.k === t0 ? "today" : ""}">${WD[i]}</small><em>${p.a ? p.d + "/" + p.a : "\xB7"}</em></div>`;
+    }).join("");
+    const hb = habits().filter((t) => Array.from({ length: 7 }, (_, i) => addDays(mon, i)).some((k) => occurs(t, k))).map((t) => {
+      let occ = 0, ok = 0;
+      const cells = WD.map((l, i) => {
+        const k = addDays(mon, i);
+        if (!occurs(t, k)) return '<span class="off"></span>';
+        const h = hist(t.id, k), st = h ? h.status : "open";
+        if ((k < t0 || k === t0 && st !== "open") && st !== "skipped" && st !== "moved") {
+          occ++;
+          if (st === "done") ok++;
+        }
+        return `<span class="${st === "done" ? "ok" : st === "missed" ? "no" : st === "skipped" || st === "moved" ? "sk" : ""}">${l}</span>`;
+      }).join("");
+      const sk = streak(t), g = gapOf(t);
+      const badge = g >= 3 ? `<span class="badge warn">${g} ${unitWord(t, g)} \u043F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043E</span>` : sk >= 2 ? `<span class="badge">\u{1F525} ${sk} \u043F\u043E\u0441\u043F\u0456\u043B\u044C</span>` : "";
+      const chal = t.goal ? `<div class="chal">${sk >= t.goal ? "\u{1F3C6} \u0427\u0435\u043B\u0435\u043D\u0434\u0436 \u043F\u0440\u043E\u0439\u0434\u0435\u043D\u043E!" : `\u0427\u0435\u043B\u0435\u043D\u0434\u0436: ${Math.min(sk, t.goal)} \u0437 ${t.goal}`}<div class="track"><i style="width:${Math.min(100, sk / t.goal * 100)}%"></i></div></div>` : "";
+      return `<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span>${badge}<span class="n">${ok}/${occ}</span></div><div class="cells">${cells}</div>${chal}</button>`;
+    }).join("");
+    const closed = closedIn(mon);
+    return `
+    ${sig.length ? `<div class="signals">${sig.map(signalHTML).join("")}</div>` : ""}
+    <div class="sec">\u041F\u0456\u0434\u0441\u0443\u043C\u043E\u043A \u0442\u0438\u0436\u043D\u044F</div>
+    <section class="card" style="margin-top:0">
+      <div class="kpi"><b>${w.pct}%</b><span>\u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E ${w.done} \u0437 ${w.all}</span>${delta !== null ? `<span class="delta ${delta >= 0 ? "up" : "down"}">${delta >= 0 ? "+" : ""}${delta}% \u0434\u043E \u043C\u0438\u043D\u0443\u043B\u043E\u0433\u043E</span>` : ""}</div>
+      <div class="days-chart">${chart}</div>
+      ${best ? `<p class="best">\u041D\u0430\u0439\u043A\u0440\u0430\u0449\u0438\u0439 \u0434\u0435\u043D\u044C: ${WDFULL[wd(parse(best.k))]}, ${best.d} \u0437 ${best.a}</p>` : ""}
+    </section>
+    ${hb ? `<div class="sec">\u0417\u0432\u0438\u0447\u043A\u0438 \u0439 \u0447\u0435\u043B\u0435\u043D\u0434\u0436\u0456</div><div class="list">${hb}</div>` : ""}
+    ${closed.length ? `<div class="sec">\u0417\u0430\u043A\u0440\u0438\u0442\u043E \u0437\u0430 \u0442\u0438\u0436\u0434\u0435\u043D\u044C <span class="cnt">${closed.length}</span></div>
+      <div class="list">${closed.map(({ t, c }) => `<div class="row done" data-id="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><span class="pdot ${t.priority || "mid"}"></span><button class="body" data-a="open"><span class="t">${esc(t.title)}</span><span class="m"><span class="s-closed">\u2713 \u0437\u0430\u043A\u0440\u0438\u0442\u043E ${fmt(c)}</span>${t.category && t.category !== "other" ? `<span class="cat">${CATS[t.category].e} ${CATS[t.category].n}</span>` : ""}</span></button></div>`).join("")}</div>` : ""}`;
+  }
   var movedLabel = (to) => to && to.startsWith("week:") ? "\u043D\u0430 \u0442\u0438\u0436\u0434\u0435\u043D\u044C " + fmtWeek(to.slice(5)) : "\u043D\u0430 " + fmtShort(to);
   function rowHTML(e, opt = {}) {
     const { t, dk, h, st } = e;
@@ -511,7 +718,11 @@ details.fold[open] summary::before{content:"▾ "}
     if (opt.showDate) meta.push(fmtShort(dk));
     if (t.time) meta.push(esc(t.time));
     if (isRepeating(t)) meta.push("\u21BB " + repeatLabel(t));
-    if (t.category && t.category !== "other") meta.push(CATS[t.category].e + " " + CATS[t.category].n);
+    if (isRepeating(t)) {
+      const sk = streak(t);
+      if (sk >= 2) meta.push('<span class="s-fire">\u{1F525} ' + sk + " \u043F\u043E\u0441\u043F\u0456\u043B\u044C</span>");
+    }
+    if (t.category && t.category !== "other") meta.push('<span class="cat">' + CATS[t.category].e + " " + CATS[t.category].n + "</span>");
     if (t.movedFrom && st === "open") meta.push("\u21AA \u0437 " + fmtShort(t.movedFrom));
     if (st === "missed") meta.push('<span class="s-miss">\u043D\u0435 \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E</span>');
     if (st === "moved") meta.push('<span class="s-moved">\u043F\u0435\u0440\u0435\u043D\u0435\u0441\u0435\u043D\u043E ' + movedLabel(h.movedTo) + "</span>");
@@ -523,16 +734,17 @@ details.fold[open] summary::before{content:"▾ "}
     <button class="act done ${st === "done" ? "on" : ""}" data-a="done" aria-label="\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E">\u2713</button>
     <button class="act miss ${st === "missed" ? "on" : ""}" data-a="missed" aria-label="\u041D\u0435 \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E">\u2715</button>
     ${st === "done" ? "" : '<button class="act move" data-a="move" aria-label="\u041F\u0435\u0440\u0435\u043D\u0435\u0441\u0442\u0438">\u21AA</button>'}`;
-    return `<div class="row ${st}" data-id="${t.id}" data-d="${dk}">
+    return `<div class="row ${st}" data-id="${t.id}" data-d="${dk}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})">
     <span class="pdot ${t.priority || "mid"}" aria-label="\u041F\u0440\u0456\u043E\u0440\u0438\u0442\u0435\u0442: ${PRIO[t.priority || "mid"].n}"></span>
     <button class="body" data-a="open"><span class="t">${esc(t.title)}</span>${meta.length ? `<span class="m">${meta.map((m) => `<span>${m}</span>`).join("")}</span>` : ""}</button>
     <div class="acts">${acts}</div></div>`;
   }
   function planRowHTML(t, action = { a: "schedule", label: "\u0417\u0430\u043F\u043B\u0430\u043D\u0443\u0432\u0430\u0442\u0438" }) {
     const meta = [];
-    if (t.category && t.category !== "other") meta.push(CATS[t.category].e + " " + CATS[t.category].n);
+    if (t.done) meta.push('<span class="s-closed">\u2713 ' + (t.doneAt ? "\u0437\u0430\u043A\u0440\u0438\u0442\u043E " + fmt(t.doneAt.slice(0, 10)) + (t.doneAt.slice(0, 4) !== today().slice(0, 4) ? " " + t.doneAt.slice(0, 4) : "") : "\u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E") + "</span>");
+    if (t.category && t.category !== "other") meta.push('<span class="cat">' + CATS[t.category].e + " " + CATS[t.category].n + "</span>");
     if (t.note) meta.push(esc(t.note.length > 40 ? t.note.slice(0, 40) + "\u2026" : t.note));
-    return `<div class="row ${t.done ? "done" : ""}" data-id="${t.id}">
+    return `<div class="row ${t.done ? "done" : ""}" data-id="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})">
     <button class="chk ${t.done ? "on" : ""}" data-a="toggle" aria-label="${t.done ? "\u0417\u043D\u044F\u0442\u0438 \u043F\u043E\u0437\u043D\u0430\u0447\u043A\u0443" : "\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E"}">${t.done ? "\u2713" : ""}</button>
     <button class="body" data-a="open"><span class="t">${esc(t.title)}</span>${meta.length ? `<span class="m">${meta.map((m) => `<span>${m}</span>`).join("")}</span>` : ""}</button>
     ${t.done ? "" : `<div class="acts"><button class="act txt" data-a="${action.a}">${action.label}</button></div>`}
@@ -636,7 +848,7 @@ details.fold[open] summary::before{content:"▾ "}
     if (!isNew) {
       const hs = historyOf(task.id).slice(0, 12);
       const lines = hs.map((h) => `<li><span>${fmtShort(h.date)}</span><span>${STATUS_TXT[h.status]}${h.status === "moved" ? " " + movedLabel(h.movedTo) : ""}</span></li>`);
-      if (task.done && task.doneAt) lines.unshift(`<li><span>${fmtShort(task.doneAt.slice(0, 10))}</span><span>\u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E</span></li>`);
+      if (task.done && task.doneAt) lines.unshift(`<li><span>${fmtShort(task.doneAt.slice(0, 10))}</span><span>\u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E, \u0437\u0430\u043A\u0440\u0438\u0442\u043E</span></li>`);
       if (task.movedFrom) lines.push(`<li><span>${fmtShort(task.movedFrom)}</span><span>\u0437\u0432\u0456\u0434\u0441\u0438 \u043F\u0435\u0440\u0435\u043D\u0435\u0441\u0435\u043D\u043E</span></li>`);
       if (lines.length) histBlock = `<div class="hist"><span class="lbl">\u0406\u0441\u0442\u043E\u0440\u0456\u044F</span><ul>${lines.join("")}</ul></div>`;
     }
@@ -660,6 +872,9 @@ details.fold[open] summary::before{content:"▾ "}
       <div class="fld" id="w-days" ${rep === "days" ? "" : "hidden"}><span>\u0414\u043D\u0456 \u0442\u0438\u0436\u043D\u044F</span><div class="seg" id="f-days">
         ${WD.map((w, i) => `<button type="button" data-v="${i}" class="${days.includes(i) ? "on" : ""}">${w}</button>`).join("")}
       </div></div>
+      <div class="fld" id="w-goal" ${rep === "none" ? "hidden" : ""}><span>\u0427\u0435\u043B\u0435\u043D\u0434\u0436</span><div class="seg" id="f-goal">
+        ${[[0, "\u0411\u0435\u0437 \u0447\u0435\u043B\u0435\u043D\u0434\u0436\u0443"], [7, "7"], [14, "14"], [21, "21"], [30, "30"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${(f.goal || 0) === v ? "on" : ""}">${l}</button>`).join("")}
+      </div><p class="hint" style="color:var(--muted)">\u0421\u043A\u0456\u043B\u044C\u043A\u0438 \u0440\u0430\u0437\u0456\u0432 \u043F\u043E\u0441\u043F\u0456\u043B\u044C \u0442\u0440\u0435\u0431\u0430 \u0432\u0438\u043A\u043E\u043D\u0430\u0442\u0438. \u041F\u0440\u043E\u0433\u0440\u0435\u0441 \u0431\u0443\u0434\u0435 \u0443 \xAB\u0422\u0438\u0436\u0434\u0435\u043D\u044C\xBB.</p></div>
       <label class="fld" id="w-int" ${rep === "interval" ? "" : "hidden"}><span>\u041A\u043E\u0436\u043D\u0456 \u0441\u043A\u0456\u043B\u044C\u043A\u0438 \u0434\u043D\u0456\u0432</span>
         <input type="number" id="f-n" inputmode="numeric" min="2" max="365" value="${f.repeat.n || 2}"></label>
     </div>
@@ -702,6 +917,10 @@ details.fold[open] summary::before{content:"▾ "}
       q("#f-rep").addEventListener("change", (e) => {
         q("#w-days").hidden = e.target.value !== "days";
         q("#w-int").hidden = e.target.value !== "interval";
+        q("#w-goal").hidden = e.target.value === "none";
+      });
+      segHandler(q("#f-goal"), (v) => {
+        f.goal = +v;
       });
       if (q("#skip")) q("#skip").onclick = async () => {
         await safe(setStatus(task.id, dk, "skipped"));
@@ -741,10 +960,12 @@ details.fold[open] summary::before{content:"▾ "}
             }
             f.repeat.n = n;
           }
+          if (type === "none" || !f.goal) delete f.goal;
         } else {
           f.date = null;
           f.time = "";
           f.repeat = { type: "none" };
+          delete f.goal;
           f.weekOf = when === "week" ? week : null;
         }
         await safe(saveTask(f));
@@ -840,6 +1061,7 @@ details.fold[open] summary::before{content:"▾ "}
     });
   }
 
+  var LOGO = '<span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19c0-8 5-13 15-14-1 10-6 15-14 15"/><path d="M5 19c3-4 6-7 10-9"/></svg></span>';
   // js/views/today.js
   function renderToday(el) {
     const dk = today();
@@ -858,7 +1080,9 @@ details.fold[open] summary::before{content:"▾ "}
       return `<div class="sec">${PRIO[p].e} ${PRIO[p].n} \u043F\u0440\u0456\u043E\u0440\u0438\u0442\u0435\u0442</div>
       <div class="list">${list.map((e) => rowHTML(e)).join("")}</div>`;
     }).join("");
+    const sig = signals().slice(0, 3);
     el.innerHTML = `
+    <div class="brand">${LOGO}\u041C\u0456\u0439 \u043F\u043B\u0430\u043D\u0435\u0440</div>
     <header class="head"><div>
       <h1 class="title">${fmt(dk)}</h1>
       <p class="subtitle">${WDFULL[wd(parse(dk))]}</p>
@@ -868,6 +1092,8 @@ details.fold[open] summary::before{content:"▾ "}
       <div class="nums"><span class="ok">\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E ${done} \u0437 ${total}</span>${missed ? `<span class="no">\u043D\u0435 \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E ${missed}</span>` : ""}${moved ? `<span class="mv">\u043F\u0435\u0440\u0435\u043D\u0435\u0441\u0435\u043D\u043E ${moved}</span>` : ""}</div>
       <div class="bar"><span style="width:${done / total * 100}%;background:var(--done)"></span><span style="width:${missed / total * 100}%;background:var(--miss)"></span></div>
     </div>` : ""}
+
+    ${sig.length ? `<div class="signals">${sig.map(signalHTML).join("")}</div>` : ""}
 
     ${groups || `<div class="empty" style="margin-top:18px">\u041D\u0430 \u0441\u044C\u043E\u0433\u043E\u0434\u043D\u0456 \u0441\u043F\u0440\u0430\u0432 \u043D\u0435\u043C\u0430\u0454.<br>\u041D\u0430\u0442\u0438\u0441\u043D\u0438 +, \u0449\u043E\u0431 \u0434\u043E\u0434\u0430\u0442\u0438.</div>`}
 
@@ -908,10 +1134,12 @@ details.fold[open] summary::before{content:"▾ "}
       <button class="icon-btn" data-wk="1" aria-label="\u041D\u0430\u0441\u0442\u0443\u043F\u043D\u0438\u0439 \u0442\u0438\u0436\u0434\u0435\u043D\u044C">\u203A</button>
     </div></header>
 
+    ${statsHTML(mon)}
+
     <div class="sec">${isThis ? "\u041F\u043B\u0430\u043D\u0438 \u043D\u0430 \u0446\u0435\u0439 \u0442\u0438\u0436\u0434\u0435\u043D\u044C" : "\u041F\u043B\u0430\u043D\u0438 \u043D\u0430 \u0442\u0438\u0436\u0434\u0435\u043D\u044C"}${open.length ? ` <span class="cnt">${open.length}</span>` : ""}</div>
     <form class="quick" data-quick="week"><input name="q" placeholder="\u041D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434, \u043A\u0443\u043F\u0438\u0442\u0438 \u043A\u043E\u0440\u043C \u0414\u0436\u0435\u0441\u0456" autocomplete="off" enterkeyhint="done" aria-label="\u041D\u043E\u0432\u0438\u0439 \u043F\u043B\u0430\u043D \u0442\u0438\u0436\u043D\u044F"><button>\u0414\u043E\u0434\u0430\u0442\u0438</button></form>
     ${open.length ? `<div class="list">${open.map((t) => planRowHTML(t, { a: "schedule", label: "\u041D\u0430 \u0434\u0435\u043D\u044C" })).join("")}</div>` : ""}
-    ${done.length ? `<details class="fold"><summary>\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E (${done.length})</summary><div class="list" style="margin-top:8px">${done.map((t) => planRowHTML(t)).join("")}</div></details>` : ""}
+    ${done.length ? `<div class="sec">\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E <span class="cnt">${done.length}</span></div><div class="list">${done.sort((a, b) => (b.doneAt || "").localeCompare(a.doneAt || "")).map((t) => planRowHTML(t)).join("")}</div>` : ""}
 
     <div class="sec">\u041F\u043E \u0434\u043D\u044F\u0445</div>
     ${daysHTML}
@@ -989,26 +1217,38 @@ details.fold[open] summary::before{content:"▾ "}
     <div class="chips">${chips}</div>
     <form class="quick" data-quick="plan"><input name="q" placeholder="${ph}" autocomplete="off" enterkeyhint="done" aria-label="\u041D\u043E\u0432\u0438\u0439 \u043F\u043B\u0430\u043D"><button>\u0414\u043E\u0434\u0430\u0442\u0438</button></form>
     ${listHTML || `<div class="empty">${cat === "all" ? "\u041F\u043B\u0430\u043D\u0456\u0432 \u043F\u043E\u043A\u0438 \u043D\u0435\u043C\u0430\u0454." : "\u0423 \u0446\u0456\u0439 \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0456\u0457 \u043F\u043B\u0430\u043D\u0456\u0432 \u043D\u0435\u043C\u0430\u0454."}</div>`}
-    ${doneIn.length ? `<details class="fold"><summary>\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u0456 (${doneIn.length})</summary><div class="list" style="margin-top:8px">${doneIn.map((t) => planRowHTML(t)).join("")}</div></details>` : ""}
+    ${doneIn.length ? `<div class="sec">\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u0456 <span class="cnt">${doneIn.length}</span></div><div class="list">${doneIn.map((t) => planRowHTML(t)).join("")}</div>` : ""}
   `;
   }
 
+  var PALS = [
+    { id: "beige", n: "\u0422\u0435\u043F\u043B\u0438\u0439 \u0431\u0435\u0436", bg: "#F4ECE2", card: "#FFFBF6", a: "#C2603D", b: "#5E8A52", fg: "#3A2A22" },
+    { id: "lavender", n: "\u041D\u0456\u0436\u043D\u0430 \u043B\u0430\u0432\u0430\u043D\u0434\u0430", bg: "#EEE9F7", card: "#FFFFFF", a: "#7A4B9C", b: "#3F9C7E", fg: "#2D2140" },
+    { id: "mint", n: "\u041C\u02BC\u044F\u0442\u0430 \u0456 \u043C\u043E\u0440\u0435", bg: "#E4F2EE", card: "#FFFFFF", a: "#1F7A75", b: "#3B9358", fg: "#16303A" },
+    { id: "forest", n: "\u041B\u0456\u0441\u043E\u0432\u0430 \u0437\u0435\u043B\u0435\u043D\u044C", bg: "#1F3A2E", card: "#F6F1E3", a: "#2E6248", b: "#D9A53A", fg: "#F3EEDF" }
+  ];
+  function getPal() {
+    try {
+      const p = localStorage.getItem("planer-palette");
+      return PALS.some((x) => x.id === p) ? p : "beige";
+    } catch (e) {
+      return "beige";
+    }
+  }
   // js/views/more.js
   function renderMore(el) {
-    const theme = localStorage.getItem("planer-theme") || "system";
+    const pal = getPal();
     const last = localStorage.getItem("planer-last-backup");
     const standalone = window.navigator.standalone || matchMedia("(display-mode: standalone)").matches;
     el.innerHTML = `
+    <div class="brand">${LOGO}\u041C\u0456\u0439 \u043F\u043B\u0430\u043D\u0435\u0440</div>
     <header class="head"><div><h1 class="title">\u0429\u0435</h1></div></header>
 
     <section class="card">
-      <h2>\u0422\u0435\u043C\u0430</h2>
-      <p>\u0421\u0438\u0441\u0442\u0435\u043C\u043D\u0430 \u0442\u0435\u043C\u0430 \u043F\u0456\u0434\u043B\u0430\u0448\u0442\u043E\u0432\u0443\u0454\u0442\u044C\u0441\u044F \u043F\u0456\u0434 \u043D\u0430\u043B\u0430\u0448\u0442\u0443\u0432\u0430\u043D\u043D\u044F iPhone.</p>
-      <div class="seg full" id="theme">
-        <button data-theme-set="system" class="${theme === "system" ? "on" : ""}">\u0421\u0438\u0441\u0442\u0435\u043C\u043D\u0430</button>
-        <button data-theme-set="light" class="${theme === "light" ? "on" : ""}">\u0421\u0432\u0456\u0442\u043B\u0430</button>
-        <button data-theme-set="dark" class="${theme === "dark" ? "on" : ""}">\u0422\u0435\u043C\u043D\u0430</button>
-      </div>
+      <h2>\u041A\u043E\u043B\u044C\u043E\u0440\u0438</h2>
+      <p>\u041D\u0430\u0442\u0438\u0441\u043D\u0438, \u0449\u043E\u0431 \u043F\u0440\u0438\u043C\u0456\u0440\u044F\u0442\u0438. \u0412\u0438\u0431\u0456\u0440 \u0437\u0430\u043F\u0430\u043C\u02BC\u044F\u0442\u043E\u0432\u0443\u0454\u0442\u044C\u0441\u044F.</p>
+      <div class="pals">${PALS.map((p) => `<button class="pal ${p.id === pal ? "on" : ""}" data-pal="${p.id}" style="background:${p.bg};color:${p.fg}">
+        <span class="mini" style="background:${p.card}"><span style="background:${p.a};width:55%"></span><span style="background:${p.b};opacity:.85"></span><span style="background:${p.a};opacity:.25"></span></span><b>${p.n}${p.id === pal ? " \u2713" : ""}</b></button>`).join("")}</div>
     </section>
 
     <section class="card">
@@ -1054,9 +1294,12 @@ details.fold[open] summary::before{content:"▾ "}
     views[state.view](main, state);
   }
   function applyTheme() {
-    const t = localStorage.getItem("planer-theme") || "system";
-    if (t === "system") delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = t;
+    const p = getPal();
+    if (p === "beige") delete document.documentElement.dataset.palette;
+    else document.documentElement.dataset.palette = p;
+    delete document.documentElement.dataset.theme;
+    const m = document.getElementById("theme-color");
+    if (m) m.content = PALS.find((x) => x.id === p).bg;
   }
   applyTheme();
   load().then(() => {
@@ -1120,7 +1363,7 @@ details.fold[open] summary::before{content:"▾ "}
           t.done = !t.done;
           t.doneAt = t.done ? (/* @__PURE__ */ new Date()).toISOString() : null;
           await safe(saveTask(t));
-          if (t.done) toast("\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E");
+          if (t.done) toast("\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E, \u043B\u0438\u0448\u0430\u0454\u0442\u044C\u0441\u044F \u0432 \u043F\u043B\u0430\u043D\u0430\u0445 \u0437 \u0434\u0430\u0442\u043E\u044E");
           break;
       }
       return;
@@ -1164,11 +1407,20 @@ details.fold[open] summary::before{content:"▾ "}
       render();
       return;
     }
-    const th = el.closest("[data-theme-set]");
-    if (th) {
-      localStorage.setItem("planer-theme", th.dataset.themeSet);
+    const pl = el.closest("[data-pal]");
+    if (pl) {
+      try {
+        localStorage.setItem("planer-palette", pl.dataset.pal);
+      } catch (e2) {
+      }
       applyTheme();
       render();
+      return;
+    }
+    const ot = el.closest("[data-open-task]");
+    if (ot) {
+      const t = data.tasks.get(ot.dataset.openTask);
+      if (t) openTaskForm({ task: t });
       return;
     }
     if (el.closest("[data-export]")) {
