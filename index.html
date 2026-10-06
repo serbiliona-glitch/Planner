@@ -258,6 +258,8 @@ details.fold[open] summary::before{content:"▾ "}
 .badge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--surface);color:var(--accent);white-space:nowrap}
 .badge.warn{color:var(--miss)}
 
+.cnt-v{min-width:34px;text-align:center;font-family:var(--font-round);font-weight:700;font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}
+.cells span.cnt-c{background:var(--accent-soft);color:var(--ink)}
 .since{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:3px}
 .row.up{padding-left:14px}
 .row .cd{font-family:var(--font-round);font-weight:700;font-size:20px;color:var(--cc);flex:none;min-width:52px;text-align:right;line-height:1;padding-right:6px}
@@ -643,10 +645,49 @@ details.fold[open] summary::before{content:"▾ "}
   }
   var unitWord = (t, n) => t.repeat.type === "daily" ? daysWord(n) : timesWord(n);
   var habits = () => [...data.tasks.values()].filter((t) => isRepeating(t) && !t.origin && !t.kind);
+  var doneCount = (t) => historyOf(t.id).filter((h) => h.status === "done").length;
+  function cycleInfo(t) {
+    const total = doneCount(t), g = t.goal;
+    const rounds = Math.floor(total / g), inRound = total % g;
+    return { total, rounds, inRound, justFinished: total > 0 && inRound === 0 };
+  }
+  function countVal(t, k) {
+    const h = hist(t.id, k);
+    return h && h.status === "done" && typeof h.value === "number" ? h.value : null;
+  }
+  function zeroStreak(t) {
+    const t0 = today();
+    let n = 0;
+    for (let i = 0; i < 400; i++) {
+      const k = addDays(t0, -i);
+      if (t.zeroFrom && k < t.zeroFrom || k < t.date) break;
+      const v = countVal(t, k);
+      if (k === t0 && v === null) continue;
+      if (v === 0) n++;
+      else break;
+    }
+    return n;
+  }
   function signals() {
     const t0 = today(), out = [];
     for (const t of habits()) {
       if (t.series) continue;
+      if (t.track === "count") {
+        const z = zeroStreak(t), cc0 = "var(--c-" + (CATS[t.category] ? t.category : "other") + ")";
+        if (z >= 1) out.push({ w: 3, e: "🚭", cc: cc0, text: `${z} ${daysWord(z)} без айкосу поспіль! Так тримати` });
+        else {
+          const y = countVal(t, addDays(t0, -1)), y2 = countVal(t, addDays(t0, -2));
+          if (y !== null && y2 !== null && y < y2) out.push({ w: 2, e: "📉", cc: cc0, text: `Учора стіків було менше, ніж позавчора: ${y} проти ${y2}. Супер!` });
+        }
+        continue;
+      }
+      if (t.goal && t.cycle) {
+        const ci = cycleInfo(t), name0 = "«" + esc(t.title) + "»", cc0 = "var(--c-" + (CATS[t.category] ? t.category : "other") + ")";
+        const ld = lastDone(t);
+        if (gapOf(t) >= 3) out.push({ w: 4, e: "🌱", cc: "var(--miss)", text: `${name0}: ${gapOf(t)} ${daysWord(gapOf(t))} без тренування. Час повертатися!` });
+        else if (ci.justFinished && ld && diff(ld, t0) <= 1) out.push({ w: 3, e: "🏆", cc: cc0, text: `Коло ${name0} пройдено! Уже ${ci.rounds} × ${t.goal} днів` });
+        continue;
+      }
       const name = "\xAB" + esc(t.title) + "\xBB", cc = "var(--c-" + (CATS[t.category] ? t.category : "other") + ")";
       const g = gapOf(t), sk = streak(t);
       if (g >= 3) {
@@ -733,7 +774,17 @@ details.fold[open] summary::before{content:"▾ "}
       const times = cur.map((x) => x.time).filter(Boolean).sort();
       hbSeries.push(`<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span><span class="n">${ok}/${occ}</span></div><div class="since">${ago < 0 ? "Стартує " + fmt(start) : "Запущено " + fmt(start) + (ago > 0 ? ", " + ago + " " + daysWord(ago) + " тому" : ", сьогодні")}${cur.length ? " · зараз " + cur.length + " " + timesWord(cur.length) + " на день: " + times.join(", ") : ""}</div><div class="cells">${cells}</div></button>`);
     });
-    const hb = hbSeries.join("") + habits().filter((t) => !t.series).filter((t) => Array.from({ length: 7 }, (_, i) => addDays(mon, i)).some((k) => occurs(t, k))).map((t) => {
+    const hbCount = habits().filter((t) => t.track === "count" && Array.from({ length: 7 }, (_, i) => addDays(mon, i)).some((k) => occurs(t, k))).map((t) => {
+      const vals = WD.map((l, i) => countVal(t, addDays(mon, i)));
+      const pv = WD.map((l, i) => countVal(t, addDays(mon, i - 7))).filter((v) => v !== null);
+      const got = vals.filter((v) => v !== null);
+      const avg = got.length ? got.reduce((a, b) => a + b, 0) / got.length : null;
+      const pavg = pv.length ? pv.reduce((a, b) => a + b, 0) / pv.length : null;
+      const z = zeroStreak(t);
+      const cells = vals.map((v, i) => `<span class="${v === 0 ? "ok" : v === null ? "" : "cnt-c"}">${v === null ? WD[i] : v}</span>`).join("");
+      return `<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span>${z ? `<span class="badge">🚭 ${z} ${daysWord(z)}</span>` : ""}<span class="n">${avg === null ? "–" : (Math.round(avg * 10) / 10 + "").replace(".", ",")} ${t.unit || ""}/день</span></div><div class="since">Скільки за день${pavg !== null && avg !== null ? " · минулого тижня " + (Math.round(pavg * 10) / 10 + "").replace(".", ",") + (avg < pavg ? " · менше 👏" : "") : ""}${t.zeroFrom ? " · з " + fmt(t.zeroFrom) + " мета: 0" : ""}</div><div class="cells">${cells}</div></button>`;
+    }).join("");
+    const hb = hbSeries.join("") + hbCount + habits().filter((t) => !t.series && t.track !== "count").filter((t) => Array.from({ length: 7 }, (_, i) => addDays(mon, i)).some((k) => occurs(t, k))).map((t) => {
       let occ = 0, ok = 0;
       const cells = WD.map((l, i) => {
         const k = addDays(mon, i);
@@ -748,7 +799,8 @@ details.fold[open] summary::before{content:"▾ "}
       const sk = streak(t), g = gapOf(t);
       const badge = g >= 3 ? `<span class="badge warn">${g} ${unitWord(t, g)} \u043F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043E</span>` : sk >= 2 ? `<span class="badge">\u{1F525} ${sk} \u043F\u043E\u0441\u043F\u0456\u043B\u044C</span>` : "";
       const left = t.goal ? Math.max(0, t.goal - sk) : 0;
-      const chal = t.goal ? `<div class="chal">${sk >= t.goal ? "🏆 Челендж на " + t.goal + " пройдено!" : `Челендж: ${sk} з ${t.goal}, лишилось ${left}`}<div class="track"><i style="width:${Math.min(100, sk / t.goal * 100)}%"></i></div></div>` : "";
+      const ci = t.goal && t.cycle ? cycleInfo(t) : null;
+      const chal = ci ? `<div class="chal">${ci.justFinished ? "🏆 Коло " + ci.rounds + " пройдено, завтра нове" : `Коло ${ci.rounds + 1} · день ${ci.inRound + 1} з ${t.goal}`}${ci.rounds ? " · пройдено кіл: " + ci.rounds : ""}<div class="track"><i style="width:${(ci.justFinished ? t.goal : ci.inRound) / t.goal * 100}%"></i></div></div>` : t.goal ? `<div class="chal">${sk >= t.goal ? "🏆 Челендж на " + t.goal + " пройдено!" : `Челендж: ${sk} з ${t.goal}, лишилось ${left}`}<div class="track"><i style="width:${Math.min(100, sk / t.goal * 100)}%"></i></div></div>` : "";
       const ago = diff(t.date, t0), total = historyOf(t.id).filter((h) => h.status === "done").length;
       const since = `<div class="since">${ago < 0 ? "Стартує" : "Запущено"} ${fmt(t.date)}${t.date.slice(0, 4) !== t0.slice(0, 4) ? " " + t.date.slice(0, 4) : ""}${ago > 0 ? ", " + ago + " " + daysWord(ago) + " тому" : ago === 0 ? ", сьогодні" : ""} · ${repeatLabel(t)}${t.part ? ", " + PARTS[t.part].n.toLowerCase() : ""} · усього виконано ${total} ${timesWord(total)}</div>`;
       return `<button class="habit" data-open-task="${t.id}" style="--cc:var(--c-${CATS[t.category] ? t.category : "other"})"><div class="top"><span class="t">${esc(t.title)}</span>${badge}<span class="n">${ok}/${occ}</span></div>${since}<div class="cells">${cells}</div>${chal}</button>`;
@@ -789,13 +841,18 @@ details.fold[open] summary::before{content:"▾ "}
     if (st === "moved") meta.push('<span class="s-moved">\u043F\u0435\u0440\u0435\u043D\u0435\u0441\u0435\u043D\u043E ' + movedLabel(h.movedTo) + "</span>");
     if (st === "skipped") meta.push('<span class="s-skip">\u043F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043E</span>');
     let acts;
-    if (st === "moved") acts = "";
+    if (t.track === "count") {
+      const v = h && typeof h.value === "number" ? h.value : null;
+      acts = `<button class="act" data-a="dec" aria-label="Менше">−</button><span class="cnt-v">${v === null ? "–" : v}</span><button class="act" data-a="inc" aria-label="Більше">+</button>`;
+      if (t.zeroFrom && dk >= t.zeroFrom) meta.push(v === 0 ? '<span class="s-done">день без айкосу 🚭</span>' : "мета: 0");
+      else meta.push("відмічай, скільки за день");
+    } else if (st === "moved") acts = "";
     else if (st === "skipped") acts = `<button class="act txt" data-a="undo">\u041F\u043E\u0432\u0435\u0440\u043D\u0443\u0442\u0438</button>`;
     else acts = `
     <button class="act done ${st === "done" ? "on" : ""}" data-a="done" aria-label="\u0412\u0438\u043A\u043E\u043D\u0430\u043D\u043E">\u2713</button>
     <button class="act miss ${st === "missed" ? "on" : ""}" data-a="missed" aria-label="\u041D\u0435 \u0432\u0438\u043A\u043E\u043D\u0430\u043D\u043E">\u2715</button>
     ${st === "done" ? "" : '<button class="act move" data-a="move" aria-label="\u041F\u0435\u0440\u0435\u043D\u0435\u0441\u0442\u0438">\u21AA</button>'}`;
-    return `<div class="row ${st}" data-id="${t.id}" data-d="${dk}" style="--cc:${KINDS[t.kind] ? KINDS[t.kind].c : "var(--c-" + (CATS[t.category] ? t.category : "other") + ")"}">
+    return `<div class="row ${t.track === "count" ? "count" : st}" data-id="${t.id}" data-d="${dk}" style="--cc:${KINDS[t.kind] ? KINDS[t.kind].c : "var(--c-" + (CATS[t.category] ? t.category : "other") + ")"}">
     <span class="pdot ${t.priority || "mid"}" aria-label="\u041F\u0440\u0456\u043E\u0440\u0438\u0442\u0435\u0442: ${PRIO[t.priority || "mid"].n}"></span>
     <button class="body" data-a="open"><span class="t">${KINDS[t.kind] ? KINDS[t.kind].e + " " : ""}${esc(t.title)}</span>${meta.length ? `<span class="m">${meta.map((m) => `<span>${m}</span>`).join("")}</span>` : ""}</button>
     <div class="acts">${acts}</div></div>`;
@@ -1065,7 +1122,7 @@ details.fold[open] summary::before{content:"▾ "}
       </div></div>
       <div class="fld" id="w-goal" ${rep === "none" ? "hidden" : ""}><span>\u0427\u0435\u043B\u0435\u043D\u0434\u0436</span><div class="seg" id="f-goal">
         ${[[0, "\u0411\u0435\u0437 \u0447\u0435\u043B\u0435\u043D\u0434\u0436\u0443"], [7, "7"], [14, "14"], [21, "21"], [30, "30"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${(f.goal || 0) === v ? "on" : ""}">${l}</button>`).join("")}
-      </div><p class="hint" style="color:var(--muted)">\u0421\u043A\u0456\u043B\u044C\u043A\u0438 \u0440\u0430\u0437\u0456\u0432 \u043F\u043E\u0441\u043F\u0456\u043B\u044C \u0442\u0440\u0435\u0431\u0430 \u0432\u0438\u043A\u043E\u043D\u0430\u0442\u0438. \u041F\u0440\u043E\u0433\u0440\u0435\u0441 \u0431\u0443\u0434\u0435 \u0443 \xAB\u0422\u0438\u0436\u0434\u0435\u043D\u044C\xBB.</p></div>
+      </div><div class="seg" id="f-cycle" style="margin-top:8px"><button type="button" data-v="0" class="${f.cycle ? "" : "on"}">Один раз</button><button type="button" data-v="1" class="${f.cycle ? "on" : ""}">🔁 По колу</button></div><p class="hint" style="color:var(--muted)">\u0421\u043A\u0456\u043B\u044C\u043A\u0438 \u0440\u0430\u0437\u0456\u0432 \u043F\u043E\u0441\u043F\u0456\u043B\u044C \u0442\u0440\u0435\u0431\u0430 \u0432\u0438\u043A\u043E\u043D\u0430\u0442\u0438. \u041F\u0440\u043E\u0433\u0440\u0435\u0441 \u0431\u0443\u0434\u0435 \u0443 \xAB\u0422\u0438\u0436\u0434\u0435\u043D\u044C\xBB.</p></div>
       <label class="fld" id="w-int" ${rep === "interval" ? "" : "hidden"}><span>\u041A\u043E\u0436\u043D\u0456 \u0441\u043A\u0456\u043B\u044C\u043A\u0438 \u0434\u043D\u0456\u0432</span>
         <input type="number" id="f-n" inputmode="numeric" min="2" max="365" value="${f.repeat.n || 2}"></label>
     </div>
@@ -1123,6 +1180,9 @@ details.fold[open] summary::before{content:"▾ "}
         q("#w-int").hidden = e.target.value !== "interval";
         q("#w-goal").hidden = e.target.value === "none";
       });
+      segHandler(q("#f-cycle"), (v) => {
+        f.cycle = v === "1";
+      });
       segHandler(q("#f-goal"), (v) => {
         f.goal = +v;
       });
@@ -1166,7 +1226,10 @@ details.fold[open] summary::before{content:"▾ "}
             }
             f.repeat.n = n;
           }
-          if (type === "none" || !f.goal) delete f.goal;
+          if (type === "none" || !f.goal) {
+            delete f.goal;
+            delete f.cycle;
+          }
         } else {
           f.date = null;
           f.time = "";
@@ -1566,6 +1629,15 @@ details.fold[open] summary::before{content:"▾ "}
           if (h && h.status === act.dataset.a) await safe(clearStatus(t.id, dk));
           else await safe(setStatus(t.id, dk, act.dataset.a, act.dataset.a === "done" ? { doneAt: (/* @__PURE__ */ new Date()).toISOString() } : {}));
           break;
+        case "inc":
+        case "dec": {
+          const cur = h && typeof h.value === "number" ? h.value : null;
+          const nv = act.dataset.a === "inc" ? (cur === null ? 0 : cur + 1) : Math.max(0, (cur || 0) - 1);
+          if (act.dataset.a === "dec" && cur === null) {
+            await safe(setStatus(t.id, dk, "done", { value: 0 }));
+          } else await safe(setStatus(t.id, dk, "done", { value: nv }));
+          break;
+        }
         case "undo":
           await safe(clearStatus(t.id, dk));
           break;
